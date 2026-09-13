@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student Chat - College AI Assistant</title>
+    <meta name="description" content="Student Helpdesk for UIET Hoshiarpur" />
+    <meta property="og:title" content="Student Chat - College AI Assistant" />
+    <meta property="og:description" content="Student Helpdesk for UIET Hoshiarpur" />
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/chat.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="app-container" id="chatApp">
+      <!-- Institutional Top Bar -->
+      <div class="institutional-topbar">
+        <div class="topbar-content">
+          <div class="topbar-left">
+            <span>Panjab University &bull; Swami Sarvanand Giri Regional Centre, Hoshiarpur</span>
+          </div>
+          <div class="topbar-right">
+            <span>Academic Helpdesk &amp; Advising</span>
+            <span class="topbar-divider">&bull;</span>
+            <span class="topbar-contact">Academic Session 2025&ndash;26</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navbar -->
+      <header class="college-navbar" id="chatNav">
+        <div class="nav-content">
+          <a href="/index.html" class="brand-wrapper" id="chatNavBrand">
+            <div class="college-crest" id="chatCrest">
+              <img src="/assets/uiet_logo.svg" alt="UIET Logo" class="college-crest-img" />
+            </div>
+            <div class="brand-text">
+              <h1>College AI Assistant</h1>
+              <p>Student Helpdesk for UIET Hoshiarpur</p>
+            </div>
+          </a>
+
+          <button type="button" class="mobile-menu-btn" id="chatMobileMenuBtn" aria-label="Toggle navigation menu" aria-expanded="false">
+            <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" fill="none" stroke-width="2">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+
+          <div class="nav-links" id="chatNavLinks">
+            <a href="/index.html" class="nav-link" id="chatHomeLink">Portal Home</a>
+            <a href="/admin.html" class="nav-btn secondary" id="chatAdminLink">
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+              Admin
+            </a>
+          </div>
+        </div>
+      </header>
+
+      <!-- Chat View -->
+      <main class="chat-view" id="chatMainView">
+        <div class="chat-card" id="chatCard">
+          <!-- Chat Header -->
+          <div class="chat-header" id="chatHeader">
+            <div class="chat-header-info">
+              <div class="chat-avatar">
+                <img src="/assets/uiet_logo.svg" alt="UIET Crest" style="width: 28px; height: 28px; object-fit: contain;" />
+              </div>
+              <div class="chat-header-text">
+                <h2>Student Academic Helpdesk</h2>
+                <p>
+                  <span class="status-dot" style="background-color: var(--color-success); width: 7px; height: 7px; display: inline-block; border-radius: 50%;"></span>
+                  Authoritative Guidance &bull; UIET Regulations &amp; Ordinances
+                </p>
+              </div>
+            </div>
+
+            <div class="chat-header-actions">
+              <button type="button" class="btn btn-outline btn-sm" id="clearChatBtn" title="Clear Chat History">
+                <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                Clear History
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick Topic Chips -->
+          <div class="quick-topics" id="quickTopics">
+            <button type="button" class="quick-chip" data-prompt="How do I apply for a bonafide certificate?">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+              <span>Bonafide Certificate</span>
+            </button>
+            <button type="button" class="quick-chip" data-prompt="What is the hostel fee?">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+              <span>Hostel Fee Structure</span>
+            </button>
+            <button type="button" class="quick-chip" data-prompt="Scholarship eligibility?">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+              <span>Scholarships &amp; Concessions</span>
+            </button>
+            <button type="button" class="quick-chip" data-prompt="Exam registration process?">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              <span>Exam Registration</span>
+            </button>
+            <button type="button" class="quick-chip" data-prompt="Fee payment process?">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+              <span>Fee Payment Schedule</span>
+            </button>
+            <button type="button" class="quick-chip" data-prompt="Placement rules?">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+              <span>Placement &amp; Internships</span>
+            </button>
+          </div>
+
+          <!-- Messages Container -->
+          <div class="chat-messages" id="chatMessages">
+            <!-- Messages rendered dynamically by chat.js -->
+          </div>
+
+          <!-- Input Bar -->
+          <div class="chat-input-container" id="chatInputContainer">
+            <form class="chat-input-form" id="chatForm">
+              <textarea 
+                id="chatInput" 
+                class="chat-textarea" 
+                rows="1" 
+                placeholder="Ask about academic circulars, procedures, hostel guidelines, or examination dates..."
+                required
+              ></textarea>
+              <button type="submit" class="chat-send-btn" id="sendBtn" disabled title="Submit query">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="22" y1="2" x2="11" y2="13"></line>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+              </button>
+            </form>
+            <div class="chat-input-footer">
+              <span>Press <kbd style="font-family: monospace; background: #e2e8f0; padding: 1px 4px; border-radius: 3px;">Enter</kbd> to send, <kbd style="font-family: monospace; background: #e2e8f0; padding: 1px 4px; border-radius: 3px;">Shift+Enter</kbd> for newline</span>
+              <span class="grounding-note">Official University Academic Desk &bull; Panjab University</span>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/js/firebase-config.js"></script>
+    <script src="/js/search.js"></script>
+    <script src="/js/gemini.js"></script>
+    <script src="/js/chat.js"></script>
+  </body>
+</html>

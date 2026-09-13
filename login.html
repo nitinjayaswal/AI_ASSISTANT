@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Staff Login - College AI Assistant</title>
+    <meta name="description" content="Administrative login to manage college documents and knowledge base." />
+    <meta property="og:title" content="Staff Login - College AI Assistant" />
+    <meta property="og:description" content="Administrative login to manage college documents and knowledge base." />
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/admin.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="app-container" id="loginApp">
+      <!-- Navbar -->
+      <header class="college-navbar" id="loginNav">
+        <div class="nav-content">
+          <a href="/index.html" class="brand-wrapper" id="loginNavBrand">
+            <div class="college-crest">
+              <img src="/assets/uiet_logo.svg" alt="UIET Logo" class="college-crest-img" />
+            </div>
+            <div class="brand-text">
+              <h1>College AI Assistant</h1>
+              <p>Student Helpdesk for UIET Hoshiarpur</p>
+            </div>
+          </a>
+
+          <div style="display: flex; align-items: center;">
+            <a href="/index.html" class="btn btn-outline btn-sm" id="loginBackToChat">
+              &larr; Student Portal
+            </a>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Login View -->
+      <main class="login-view" id="loginView">
+        <div class="login-card" id="loginCard">
+          <div class="login-header">
+            <div class="login-crest">
+              <svg viewBox="0 0 24 24">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+            </div>
+            <h2>Staff Administration</h2>
+            <p>Sign in to manage official college documents, upload PDF handbooks, and update AI retrieval chunks.</p>
+          </div>
+
+          <div id="loginError" style="display: none; padding: 0.75rem; background-color: var(--color-error-bg); color: var(--color-error); border: 1px solid #fecaca; border-radius: var(--radius-md); font-size: 0.85rem; margin-bottom: 1.25rem;">
+          </div>
+
+          <form class="login-form" id="loginForm">
+            <div class="form-group">
+              <label class="form-label" for="loginEmail">Staff Email</label>
+              <input 
+                type="email" 
+                id="loginEmail" 
+                class="form-input" 
+                placeholder="admin@college.edu" 
+                value="admin@college.edu" 
+                required 
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="loginPassword">Password</label>
+              <input 
+                type="password" 
+                id="loginPassword" 
+                class="form-input" 
+                placeholder="••••••••" 
+                value="Uiet@123" 
+                required 
+              />
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="loginSubmitBtn" style="width: 100%; margin-top: 0.5rem;">
+              Sign In to Dashboard
+            </button>
+          </form>
+
+          <div class="login-divider">
+            <span>Quick Preview Access</span>
+          </div>
+
+          <button type="button" class="btn btn-outline" id="demoLoginBtn" style="width: 100%;">
+            ⚡ Sign In as Demo Administrator
+          </button>
+
+          <div class="demo-credentials-box">
+            <strong>Admin Credentials:</strong>
+            Email: <code>admin@college.edu</code><br />
+            Password: <code>Uiet@123</code>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/js/firebase-config.js"></script>
+    <script src="/js/auth.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        // Redirect if already authenticated
+        if (window.CollegeAuth) {
+          window.CollegeAuth.redirectIfAuthenticated();
+        }
+
+        const loginForm = document.getElementById("loginForm");
+        const loginEmail = document.getElementById("loginEmail");
+        const loginPassword = document.getElementById("loginPassword");
+        const loginError = document.getElementById("loginError");
+        const demoLoginBtn = document.getElementById("demoLoginBtn");
+
+        if (loginForm) {
+          loginForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            hideError();
+            try {
+              await window.CollegeAuth.login(loginEmail.value.trim(), loginPassword.value);
+              window.location.href = "admin.html";
+            } catch (err) {
+              showError(err.message || "Failed to sign in. Please verify credentials.");
+            }
+          });
+        }
+
+        if (demoLoginBtn) {
+          demoLoginBtn.addEventListener("click", async () => {
+            hideError();
+            try {
+              await window.CollegeAuth.login("admin@college.edu", "admin123");
+              window.location.href = "admin.html";
+            } catch (err) {
+              showError(err.message);
+            }
+          });
+        }
+
+        function showError(msg) {
+          if (loginError) {
+            loginError.textContent = msg;
+            loginError.style.display = "block";
+          }
+        }
+
+        function hideError() {
+          if (loginError) {
+            loginError.style.display = "none";
+          }
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,38 @@
+{
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "server.ts"
+    ],
+    "rewrites": [
+      {
+        "source": "/api/uploadPDF",
+        "function": "uploadPDF"
+      },
+      {
+        "source": "/api/searchDocuments",
+        "function": "searchDocuments"
+      },
+      {
+        "source": "/api/generateAnswer",
+        "function": "generateAnswer"
+      },
+      {
+        "source": "/api/**",
+        "function": "generateAnswer"
+      }
+    ]
+  },
+  "functions": {
+    "source": "functions"
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  }
+}

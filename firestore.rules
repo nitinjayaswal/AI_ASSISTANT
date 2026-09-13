@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if request is from an authenticated admin
+    function isAdmin() {
+      return request.auth != null && (
+        request.auth.token.admin == true ||
+        request.auth.token.email.matches('.*@college\\.edu$') ||
+        request.auth.token.role == 'admin'
+      );
+    }
+
+    // Public read-only access for students to search official college documents
+    // Only verified college administrators can upload or delete documents
+    match /documents/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+
+      // Sub-collection for document chunks
+      match /chunks/{chunkId} {
+        allow read: if true;
+        allow write: if isAdmin();
+      }
+    }
+
+    // Global indexed chunks collection for fast retrieval
+    match /chunks/{chunkId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Student query telemetry & citation feedback (optional analytics)
+    match /chatHistory/{sessionId} {
+      allow read, write: if true;
+    }
+  }
+}

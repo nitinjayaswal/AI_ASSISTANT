@@ -1,0 +1,847 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard - College AI Knowledge Base</title>
+    <meta name="description" content="Upload official college PDFs, extract chunks, and manage the knowledge base." />
+    <meta property="og:title" content="Admin Dashboard - College AI Knowledge Base" />
+    <meta property="og:description" content="Upload official college PDFs, extract chunks, and manage the knowledge base." />
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/admin.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <!-- PDF.js CDN for in-browser client PDF parsing fallback -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+      // Configure PDF.js worker
+      if (window.pdfjsLib) {
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      }
+    </script>
+  </head>
+  <body>
+    <div class="app-container" id="adminApp">
+      <!-- Institutional Top Bar -->
+      <div class="institutional-topbar">
+        <div class="topbar-content">
+          <div class="topbar-left">
+            <span>Panjab University &bull; Swami Sarvanand Giri Regional Centre, Hoshiarpur</span>
+          </div>
+          <div class="topbar-right">
+            <span>Knowledge Base &amp; Archives Administration</span>
+            <span class="topbar-divider">&bull;</span>
+            <span class="topbar-contact">Authorized Personnel Only</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navbar -->
+      <header class="college-navbar" id="adminNav">
+        <div class="nav-content">
+          <a href="/index.html" class="brand-wrapper" id="adminNavBrand">
+            <div class="college-crest">
+              <img src="/assets/uiet_logo.svg" alt="UIET Logo" class="college-crest-img" />
+            </div>
+            <div class="brand-text">
+              <h1>College AI Assistant</h1>
+              <p>Student Helpdesk for UIET Hoshiarpur</p>
+            </div>
+          </a>
+
+          <button type="button" class="mobile-menu-btn" id="adminMobileMenuBtn" aria-label="Toggle navigation menu" aria-expanded="false">
+            <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" fill="none" stroke-width="2">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+
+          <div class="nav-links" id="adminNavLinks">
+            <a href="/chat.html" class="nav-link" id="adminToChatLink">
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+              </svg>
+              Student Chatbot
+            </a>
+            <div class="admin-badge">
+              <span class="status-dot" style="background-color: var(--color-primary); width: 6px; height: 6px; border-radius: 50%;"></span>
+              <span id="adminEmailDisplay">admin@college.edu</span>
+            </div>
+            <button type="button" class="btn btn-outline btn-sm" id="adminLogoutBtn">
+              Sign Out
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Admin Main Content -->
+      <main class="admin-layout" id="adminMainContent">
+        <!-- Top Title Bar -->
+        <div class="admin-header">
+          <div class="admin-title-group">
+            <h1>College Administration Portal</h1>
+            <p>Upload previous year question papers, publish campus circulars and notices, and manage the knowledge base.</p>
+          </div>
+          <div class="admin-header-actions">
+            <a href="/" class="btn btn-outline btn-sm">
+              &larr; Home View
+            </a>
+            <a href="/chat.html" class="btn btn-primary btn-sm">
+              Test Student Chatbot &rarr;
+            </a>
+          </div>
+        </div>
+
+        <!-- Dashboard Statistics -->
+        <div class="stats-grid">
+          <div class="stat-card" id="cardStatPapers">
+            <div class="stat-icon" style="background-color: var(--color-primary-subtle); color: var(--color-primary);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+              </svg>
+            </div>
+            <div class="stat-info">
+              <h3 id="statTotalPapers">6</h3>
+              <p>Question Papers</p>
+            </div>
+          </div>
+
+          <div class="stat-card" id="cardStatNotices">
+            <div class="stat-icon" style="background-color: var(--color-accent-subtle); color: #b45309;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+            </div>
+            <div class="stat-info">
+              <h3 id="statTotalNotices">5</h3>
+              <p>Active Circulars</p>
+            </div>
+          </div>
+
+          <div class="stat-card" id="cardStatDocs">
+            <div class="stat-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+              </svg>
+            </div>
+            <div class="stat-info">
+              <h3 id="statTotalDocs">6</h3>
+              <p>Knowledge Base PDFs</p>
+            </div>
+          </div>
+
+          <div class="stat-card" id="cardStatChunks">
+            <div class="stat-icon" style="background-color: #ecfdf5; color: #059669;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                <polyline points="2 17 12 22 22 17"></polyline>
+                <polyline points="2 12 12 17 22 12"></polyline>
+              </svg>
+            </div>
+            <div class="stat-info">
+              <h3 id="statTotalChunks">24</h3>
+              <p>Indexed Document Chunks</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Management Navigation Tabs -->
+        <div class="admin-tabs-nav" id="adminTabsNav">
+          <button type="button" class="admin-tab-btn active" id="tabBtnPapers" data-tab="papers">
+            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none" stroke-width="2">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+            Previous Year Papers
+            <span class="tab-count" id="tabPapersBadge">6</span>
+          </button>
+
+          <button type="button" class="admin-tab-btn" id="tabBtnNotices" data-tab="notices">
+            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none" stroke-width="2">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+            Latest Notices & Circulars
+            <span class="tab-count" id="tabNoticesBadge">5</span>
+          </button>
+
+          <button type="button" class="admin-tab-btn" id="tabBtnDocs" data-tab="docs">
+            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+            </svg>
+            Knowledge Base PDFs
+            <span class="tab-count" id="tabDocsBadge">6</span>
+          </button>
+        </div>
+
+        <!-- ============================================================== -->
+        <!-- TAB 1: PREVIOUS YEAR PAPERS                                     -->
+        <!-- ============================================================== -->
+        <div class="tab-pane active" id="tabContentPapers">
+          <!-- Upload Paper Form Card -->
+          <div class="upload-card">
+            <div class="section-title">
+              <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" fill="none" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              Upload Previous Year Question Paper
+            </div>
+            <p class="section-subtitle">
+              Upload authentic past exam question papers for students. Includes Title, Description, Subject, Course, and Document Upload.
+            </p>
+
+            <form id="uploadPaperForm">
+              <!-- Required: Title & Subject -->
+              <div class="form-grid-2col">
+                <div class="form-group">
+                  <label class="form-label" for="paperTitleInput">
+                    Paper Title <span style="color: var(--color-error);">*</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    id="paperTitleInput" 
+                    class="form-input" 
+                    placeholder="e.g. Operating Systems Final Examination 2024" 
+                    required 
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="paperSubjectInput">
+                    Subject / Course Unit <span style="color: var(--color-error);">*</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    id="paperSubjectInput" 
+                    class="form-input" 
+                    placeholder="e.g. Operating Systems" 
+                    required 
+                  />
+                </div>
+              </div>
+
+              <!-- Required: Description -->
+              <div class="form-group" style="margin-bottom: 1.25rem;">
+                <label class="form-label" for="paperDescInput">
+                  Description <span style="color: var(--color-error);">*</span>
+                </label>
+                <textarea 
+                  id="paperDescInput" 
+                  class="form-input" 
+                  rows="3" 
+                  placeholder="Provide an overview of this question paper (e.g. 5 questions mandatory, covering process management, CPU scheduling, semaphores, and virtual memory)..." 
+                  required
+                ></textarea>
+              </div>
+
+              <!-- Academic Metadata Grid -->
+              <div class="form-grid-academic">
+                <div class="form-group">
+                  <label class="form-label" for="paperCourseInput">Degree / Branch</label>
+                  <select id="paperCourseInput" class="form-select">
+                    <option value="B.Tech Computer Science">B.Tech Computer Science</option>
+                    <option value="B.Tech Information Technology">B.Tech Information Technology</option>
+                    <option value="B.Tech Electronics & Comm">B.Tech Electronics & Comm</option>
+                    <option value="B.Tech Mechanical Eng">B.Tech Mechanical Eng</option>
+                    <option value="MCA Computer Applications">MCA Computer Applications</option>
+                    <option value="MBA Management">MBA Management</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="paperSemesterInput">Semester</label>
+                  <select id="paperSemesterInput" class="form-select">
+                    <option value="Semester 1">Semester 1</option>
+                    <option value="Semester 2">Semester 2</option>
+                    <option value="Semester 3">Semester 3</option>
+                    <option value="Semester 4" selected>Semester 4</option>
+                    <option value="Semester 5">Semester 5</option>
+                    <option value="Semester 6">Semester 6</option>
+                    <option value="Semester 7">Semester 7</option>
+                    <option value="Semester 8">Semester 8</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="paperYearInput">Academic Year</label>
+                  <select id="paperYearInput" class="form-select">
+                    <option value="2024-2025" selected>2024-2025</option>
+                    <option value="2023-2024">2023-2024</option>
+                    <option value="2022-2023">2022-2023</option>
+                    <option value="2021-2022">2021-2022</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="paperExamTypeInput">Exam Type</label>
+                  <select id="paperExamTypeInput" class="form-select">
+                    <option value="End Semester Exam" selected>End Semester Exam</option>
+                    <option value="Mid Semester Exam">Mid Semester Exam</option>
+                    <option value="Supplementary Exam">Supplementary Exam</option>
+                    <option value="Model / Practice Exam">Model / Practice Exam</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Uploading Section of a Paper (Dropzone) -->
+              <div class="form-group">
+                <label class="form-label">
+                  Upload Question Paper File (PDF, PNG, DOCX, DOC) <span style="color: var(--color-error);">*</span>
+                </label>
+                <div class="dropzone" id="paperDropzone">
+                  <input type="file" id="paperFileInput" accept=".png,.jpg,.jpeg,.pdf,.doc,.docx" style="display: none;" />
+                  <div class="dropzone-icon">
+                    <svg viewBox="0 0 24 24">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                      <polyline points="14 2 14 8 20 8"></polyline>
+                      <line x1="12" y1="18" x2="12" y2="12"></line>
+                      <line x1="9" y1="15" x2="15" y2="15"></line>
+                    </svg>
+                  </div>
+                  <div class="dropzone-text">
+                    <h4>Drag & drop question paper here (PNG or PDF), or click to browse</h4>
+                    <p>Supported file types: .png, .pdf, .docx, .doc (Max file size: 25 MB)</p>
+                    <span>Click or Drag File to Select</span>
+                  </div>
+                </div>
+
+                <!-- Selected File Preview Badge -->
+                <div class="file-selected-card" id="paperSelectedFileCard" style="display: none;">
+                  <div class="file-selected-meta">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" stroke-width="2" style="color: var(--color-primary);">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                      <polyline points="14 2 14 8 20 8"></polyline>
+                    </svg>
+                    <div>
+                      <div class="file-selected-name" id="paperSelectedFileName">SelectedFile.pdf</div>
+                      <div class="file-selected-size" id="paperSelectedFileSize">1.2 MB</div>
+                    </div>
+                  </div>
+                  <button type="button" class="file-remove-btn" id="paperRemoveFileBtn" title="Remove file">&times;</button>
+                </div>
+              </div>
+
+              <!-- Submit Button -->
+              <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end;">
+                <button type="submit" class="btn btn-primary" id="submitPaperBtn">
+                  <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                  </svg>
+                  Upload Question Paper
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Papers Repository Table Card -->
+          <div class="docs-table-card">
+            <div class="docs-table-header" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem;">
+              <div>
+                <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--color-text-main); margin-bottom: 0.25rem;">
+                  Uploaded Question Papers Repository
+                </h3>
+                <p style="font-size: 0.8rem; color: var(--color-text-muted);">
+                  Previous year examination papers available for student search and download.
+                </p>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                <input 
+                  type="text" 
+                  id="papersTableSearchInput" 
+                  placeholder="Filter papers..." 
+                  class="form-input" 
+                  style="padding: 0.4rem 0.75rem; font-size: 0.825rem; width: 220px;" 
+                />
+                <button type="button" class="btn btn-outline btn-sm" id="resetPapersBtn" title="Restore seed question papers">
+                  <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2">
+                    <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
+                    <path d="M21 3v5h-5"></path>
+                    <path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path>
+                    <path d="M3 21v-5h5"></path>
+                  </svg>
+                  Restore Defaults
+                </button>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="docs-table" id="papersTable">
+                <thead>
+                  <tr>
+                    <th>Paper Title & Subject</th>
+                    <th>Course & Semester</th>
+                    <th>Academic Year</th>
+                    <th>Exam Type</th>
+                    <th>File & Size</th>
+                    <th>Downloads</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="papersTableBody">
+                  <!-- Injected by upload.js -->
+                </tbody>
+              </table>
+
+              <div class="empty-state" id="papersTableEmptyState" style="display: none;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                </svg>
+                <h3>No Question Papers Uploaded Yet</h3>
+                <p>Use the form above to upload your first examination paper.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================================== -->
+        <!-- TAB 2: LATEST NOTICES & CIRCULARS                              -->
+        <!-- ============================================================== -->
+        <div class="tab-pane" id="tabContentNotices" style="display: none;">
+          <!-- Post Notice Card -->
+          <div class="upload-card">
+            <div class="section-title">
+              <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" fill="none" stroke-width="2">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+              Publish Latest Notice / Circular
+            </div>
+            <p class="section-subtitle">
+              Post official college announcements, exam datesheets, and notices to the student portal.
+            </p>
+
+            <form id="uploadNoticeForm">
+              <div class="form-grid-2col">
+                <div class="form-group">
+                  <label class="form-label" for="noticeTitleInput">
+                    Notice Title <span style="color: var(--color-error);">*</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    id="noticeTitleInput" 
+                    class="form-input" 
+                    placeholder="e.g. End Semester Examination Date Sheet - May 2026" 
+                    required 
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="noticeCategoryInput">
+                    Category <span style="color: var(--color-error);">*</span>
+                  </label>
+                  <select id="noticeCategoryInput" class="form-select">
+                    <option value="Examination" selected>Examination</option>
+                    <option value="Academic">Academic</option>
+                    <option value="Placement">Placement & Internships</option>
+                    <option value="Hostel">Hostel & Housing</option>
+                    <option value="Scholarship">Scholarship & Grants</option>
+                    <option value="General">General Campus Announcement</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Notice Description -->
+              <div class="form-group" style="margin-bottom: 1.25rem;">
+                <label class="form-label" for="noticeDescInput">
+                  Notice Description / Announcement Body <span style="color: var(--color-error);">*</span>
+                </label>
+                <textarea 
+                  id="noticeDescInput" 
+                  class="form-input" 
+                  rows="4" 
+                  placeholder="Enter the complete circular description or announcement details..." 
+                  required
+                ></textarea>
+              </div>
+
+              <!-- Important Toggle & Uploading Section of Notice PDF -->
+              <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.25rem; background-color: var(--color-surface-hover); padding: 0.75rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--color-border);">
+                <input type="checkbox" id="noticeImportantInput" style="width: 18px; height: 18px; cursor: pointer;" />
+                <label for="noticeImportantInput" style="cursor: pointer; font-size: 0.875rem; font-weight: 600; color: var(--color-error);">
+                  Mark as Important & Urgent (Highlights circular on student notice board)
+                </label>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">
+                  Attach Official Circular Document or Image (PDF, PNG, DOCX) - Optional
+                </label>
+                <div class="dropzone" id="noticeDropzone">
+                  <input type="file" id="noticeFileInput" accept=".png,.jpg,.jpeg,.pdf,.doc,.docx" style="display: none;" />
+                  <div class="dropzone-icon">
+                    <svg viewBox="0 0 24 24">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                      <polyline points="14 2 14 8 20 8"></polyline>
+                      <line x1="12" y1="18" x2="12" y2="12"></line>
+                      <line x1="9" y1="15" x2="15" y2="15"></line>
+                    </svg>
+                  </div>
+                  <div class="dropzone-text">
+                    <h4>Attach circular PDF or PNG image, or click to browse</h4>
+                    <p>Upload official circulars in PNG or PDF format (Max file size: 25 MB). If no file is attached, an official college PDF will be generated automatically.</p>
+                  </div>
+                </div>
+
+                <!-- Selected File Card for Notice -->
+                <div class="file-selected-card" id="noticeSelectedFileCard" style="display: none;">
+                  <div class="file-selected-meta">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" stroke-width="2" style="color: var(--color-primary);">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                      <polyline points="14 2 14 8 20 8"></polyline>
+                    </svg>
+                    <div>
+                      <div class="file-selected-name" id="noticeSelectedFileName">Notice.pdf</div>
+                      <div class="file-selected-size" id="noticeSelectedFileSize">250 KB</div>
+                    </div>
+                  </div>
+                  <button type="button" class="file-remove-btn" id="noticeRemoveFileBtn" title="Remove file">&times;</button>
+                </div>
+              </div>
+
+              <!-- Submit Button -->
+              <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end;">
+                <button type="submit" class="btn btn-primary" id="submitNoticeBtn">
+                  <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                  </svg>
+                  Publish Notice to Board
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Published Notices Table Card -->
+          <div class="docs-table-card">
+            <div class="docs-table-header" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem;">
+              <div>
+                <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--color-text-main); margin-bottom: 0.25rem;">
+                  Published Campus Circulars
+                </h3>
+                <p style="font-size: 0.8rem; color: var(--color-text-muted);">
+                  Active notices posted on the student home page.
+                </p>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                <input 
+                  type="text" 
+                  id="noticesTableSearchInput" 
+                  placeholder="Filter notices..." 
+                  class="form-input" 
+                  style="padding: 0.4rem 0.75rem; font-size: 0.825rem; width: 220px;" 
+                />
+                <button type="button" class="btn btn-outline btn-sm" id="resetNoticesBtn" title="Restore seed notices">
+                  <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2">
+                    <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
+                    <path d="M21 3v5h-5"></path>
+                    <path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path>
+                    <path d="M3 21v-5h5"></path>
+                  </svg>
+                  Restore Defaults
+                </button>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="docs-table" id="noticesTable">
+                <thead>
+                  <tr>
+                    <th>Notice Title & Status</th>
+                    <th>Category</th>
+                    <th>Published Date</th>
+                    <th>Circular Attachment</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="noticesTableBody">
+                  <!-- Injected by upload.js -->
+                </tbody>
+              </table>
+
+              <div class="empty-state" id="noticesTableEmptyState" style="display: none;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+                <h3>No Notices Published Yet</h3>
+                <p>Use the form above to post your first campus announcement.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================================== -->
+        <!-- TAB 3: KNOWLEDGE BASE PDFS                                      -->
+        <!-- ============================================================== -->
+        <div class="tab-pane" id="tabContentDocs" style="display: none;">
+          <!-- PDF Upload Section -->
+          <div class="upload-card" id="uploadCardSection">
+            <div class="section-title">
+              <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" fill="none" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              Upload Official College PDF
+            </div>
+            <p class="section-subtitle">
+              Upload new circulars, examination regulations, hostel rulebooks, or scholarship policies. Text is automatically parsed, segmented into page chunks, and indexed in Firestore.
+            </p>
+
+            <form id="uploadMetaForm">
+              <!-- Dropzone -->
+              <div class="dropzone" id="dropzone">
+                <input type="file" id="fileInput" accept=".pdf,.txt,.text,.md" style="display: none;" />
+                <div class="dropzone-icon">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="12" y1="18" x2="12" y2="12"></line>
+                    <line x1="9" y1="15" x2="15" y2="15"></line>
+                  </svg>
+                </div>
+                <div class="dropzone-text">
+                  <h4>Drop your college PDF/document here, or click to browse</h4>
+                  <p>Supports official college handbooks, regulations, circulars (.pdf, .txt, .md, max 25MB)</p>
+                  <span>PDF & Text Documents</span>
+                </div>
+              </div>
+
+              <!-- Upload Metadata Form -->
+              <div class="upload-meta-grid">
+                <div class="form-group">
+                  <label class="form-label" for="docTitle">Document Display Title</label>
+                  <input 
+                    type="text" 
+                    id="docTitle" 
+                    class="form-input" 
+                    placeholder="e.g. Bonafide Certificate Procedure 2025" 
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="docCategory">Document Category</label>
+                  <select id="docCategory" class="form-select">
+                    <option value="Academic & Admissions">Academic & Admissions</option>
+                    <option value="Hostel & Housing">Hostel & Housing</option>
+                    <option value="Fees & Accounts">Fees & Accounts</option>
+                    <option value="Examination">Examination</option>
+                    <option value="Scholarships">Scholarships</option>
+                    <option value="Placement & Training">Placement & Training</option>
+                    <option value="General Regulations">General Regulations</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Progress Bar -->
+              <div class="progress-container" id="progressContainer">
+                <div class="progress-header">
+                  <span>Processing & Indexing Chunks</span>
+                  <span id="progressPercentage">0%</span>
+                </div>
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill" id="progressBarFill"></div>
+                </div>
+                <div class="progress-status" id="progressStatus">Reading PDF buffer...</div>
+              </div>
+
+              <div style="margin-top: 1.25rem; display: flex; justify-content: flex-end;">
+                <button type="submit" class="btn btn-primary" id="startUploadBtn">
+                  <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                  </svg>
+                  Extract Text & Index to Knowledge Base
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Uploaded Documents Table Section -->
+          <div class="docs-table-card" id="docsTableCard">
+            <div class="docs-table-header" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem;">
+              <div>
+                <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--color-text-main); margin-bottom: 0.25rem;">
+                  Active College Documents
+                </h3>
+                <p style="font-size: 0.8rem; color: var(--color-text-muted);">
+                  Documents currently indexed and searchable by the student AI assistant.
+                </p>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                <div style="position: relative;">
+                  <input 
+                    type="text" 
+                    id="tableSearchInput" 
+                    placeholder="Filter documents..." 
+                    class="form-input" 
+                    style="padding: 0.4rem 0.75rem; font-size: 0.825rem; width: 200px;" 
+                  />
+                </div>
+                <button type="button" class="btn btn-outline btn-sm" id="resetDocsBtn" title="Reset to official seed regulations">
+                  <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2">
+                    <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
+                    <path d="M21 3v5h-5"></path>
+                    <path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path>
+                    <path d="M3 21v-5h5"></path>
+                  </svg>
+                  Restore Defaults
+                </button>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="docs-table" id="docsTable">
+                <thead>
+                  <tr>
+                    <th>Document Name</th>
+                    <th>Category</th>
+                    <th>Extracted Chunks</th>
+                    <th>File Size</th>
+                    <th>Date Indexed</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="docsTableBody">
+                  <!-- Injected dynamically by upload.js -->
+                </tbody>
+              </table>
+
+              <div class="empty-state" id="emptyState" style="display: none;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                </svg>
+                <h3>No college documents uploaded yet</h3>
+                <p>Upload a PDF document above to index it into the knowledge base.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Chunk Inspector Modal -->
+    <div class="modal-overlay" id="chunkModal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div>
+            <h3 id="modalDocTitle">Document Chunks</h3>
+            <p style="font-size: 0.775rem; color: var(--color-text-muted);">Inspect individual page chunks indexed for retrieval</p>
+          </div>
+          <button type="button" class="modal-close-btn" id="modalCloseBtn">&times;</button>
+        </div>
+        <div class="modal-body" id="modalChunkList">
+          <!-- Chunks injected here -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Confirmation Modal (In-App, non-blocking) -->
+    <div class="modal-overlay" id="deleteConfirmModal">
+      <div class="modal-card" style="max-width: 480px;">
+        <div class="modal-header">
+          <div style="display: flex; align-items: center; gap: 0.625rem;">
+            <div style="width: 36px; height: 36px; border-radius: 50%; background-color: #fef2f2; color: #dc2626; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                <line x1="10" y1="11" x2="10" y2="17"></line>
+                <line x1="14" y1="11" x2="14" y2="17"></line>
+              </svg>
+            </div>
+            <div>
+              <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--color-text-main); margin: 0;">Delete Document</h3>
+              <p style="font-size: 0.775rem; color: var(--color-text-muted); margin: 0;">Remove from active knowledge base</p>
+            </div>
+          </div>
+          <button type="button" class="modal-close-btn" id="deleteModalCloseBtn">&times;</button>
+        </div>
+        <div class="modal-body" style="padding: 1.25rem 1.5rem;">
+          <p style="font-size: 0.925rem; color: var(--color-text-main); line-height: 1.5; margin-bottom: 0.75rem;">
+            Are you sure you want to delete <strong id="deleteTargetTitle" style="color: var(--color-primary-dark); font-weight: 700;">this document</strong>?
+          </p>
+          <div style="background-color: #f8fafc; border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: 0.75rem 1rem; font-size: 0.8rem; color: var(--color-text-muted);">
+            <div style="margin-bottom: 0.35rem;">
+              <strong style="color: var(--color-text-main);">File Name:</strong> <span id="deleteTargetFile" style="font-family: monospace;">-</span>
+            </div>
+            <div>
+              <strong style="color: var(--color-text-main);">Retrieval Impact:</strong> All associated text chunks will be immediately removed from student chatbot responses and citations.
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline btn-sm" id="cancelDeleteBtn">
+            Cancel
+          </button>
+          <button type="button" class="btn btn-danger btn-sm" id="confirmDeleteBtn">
+            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+            <span id="confirmDeleteBtnText">Delete Document</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reset Confirmation Modal -->
+    <div class="modal-overlay" id="resetConfirmModal">
+      <div class="modal-card" style="max-width: 480px;">
+        <div class="modal-header">
+          <div style="display: flex; align-items: center; gap: 0.625rem;">
+            <div style="width: 36px; height: 36px; border-radius: 50%; background-color: var(--color-primary-subtle); color: var(--color-primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" stroke-width="2">
+                <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
+                <path d="M21 3v5h-5"></path>
+                <path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path>
+                <path d="M3 21v-5h5"></path>
+              </svg>
+            </div>
+            <div>
+              <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--color-text-main); margin: 0;">Restore Official Handbooks</h3>
+              <p style="font-size: 0.775rem; color: var(--color-text-muted); margin: 0;">Reset knowledge base to verified seed records</p>
+            </div>
+          </div>
+          <button type="button" class="modal-close-btn" id="resetModalCloseBtn">&times;</button>
+        </div>
+        <div class="modal-body" style="padding: 1.25rem 1.5rem;">
+          <p style="font-size: 0.925rem; color: var(--color-text-main); line-height: 1.5; margin-bottom: 0.75rem;">
+            This will reset the knowledge base to the official college seed regulations (bonafide procedures, hostel rules, scholarships, exam guidelines, holiday calendar 2026).
+          </p>
+          <div style="background-color: #f8fafc; border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: 0.75rem 1rem; font-size: 0.8rem; color: var(--color-text-muted);">
+            Custom uploaded documents will be replaced by the default seed repository.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline btn-sm" id="cancelResetBtn">
+            Cancel
+          </button>
+          <button type="button" class="btn btn-primary btn-sm" id="confirmResetBtn">
+            Restore Defaults
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Scripts -->
+    <script src="/js/firebase-config.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/upload.js"></script>
+  </body>
+</html>

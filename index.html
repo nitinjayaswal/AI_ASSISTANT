@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>College AI Assistant</title>
+    <meta name="description" content="Student Helpdesk for UIET Hoshiarpur" />
+    <meta property="og:title" content="College AI Assistant" />
+    <meta property="og:description" content="Student Helpdesk for UIET Hoshiarpur" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="app-container" id="portalApp">
+      <!-- Institutional Top Bar -->
+      <div class="institutional-topbar">
+        <div class="topbar-content">
+          <div class="topbar-left">
+            <span>Panjab University &bull; Swami Sarvanand Giri Regional Centre, Hoshiarpur</span>
+          </div>
+          <div class="topbar-right">
+            <span>Academic Year 2025&ndash;26</span>
+            <span class="topbar-divider">&bull;</span>
+            <span class="topbar-contact">Admin Desk: +91-1882-282617</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Collegiate Navigation Bar -->
+      <header class="college-navbar" id="collegeNav">
+        <div class="nav-content">
+          <a href="/index.html" class="brand-wrapper" id="navBrand">
+            <div class="college-crest" id="collegeCrest">
+              <img src="/assets/uiet_logo.svg" alt="UIET Logo" class="college-crest-img" />
+            </div>
+            <div class="brand-text">
+              <h1>College AI Assistant</h1>
+              <p>Student Helpdesk for UIET Hoshiarpur</p>
+            </div>
+          </a>
+
+          <button type="button" class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle navigation menu" aria-expanded="false">
+            <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" fill="none" stroke-width="2">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+
+          <div class="nav-links" id="navLinksMenu">
+            <span class="status-pill online" id="systemStatusPill">
+              <span class="status-dot"></span>
+              Helpdesk Active
+            </span>
+            <a href="#noticesSection" class="nav-link">Notices</a>
+            <a href="#papersSection" class="nav-link">Question Papers</a>
+            <a href="/chat.html" class="nav-link active" id="navChatLink">Student Chat</a>
+            <a href="/admin.html" class="nav-btn secondary" id="navAdminBtn">
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+              Admin Dashboard
+            </a>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Portal Hero -->
+      <main class="portal-hero" id="mainPortal">
+        <div style="text-align: center; max-width: 820px; margin: 0 auto 2.5rem auto;">
+          <div class="institutional-badge">
+            <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" fill="none" stroke-width="2.2">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+              <path d="M2 17l10 5 10-5"></path>
+              <path d="M2 12l10 5 10-5"></path>
+            </svg>
+            <span>Panjab University &bull; UIET Student Academic Helpdesk</span>
+          </div>
+          <h2 class="portal-hero-title">
+            Academic Regulations &amp; Campus Guidance
+          </h2>
+          <p class="portal-hero-sub">
+            Direct, verified information synthesized from official Panjab University handbooks, examination ordinances, scholarship notices, and administrative circulars.
+          </p>
+        </div>
+
+        <!-- Quick Question Launcher -->
+        <div class="card portal-search-card" id="quickSearchCard">
+          <form action="/chat.html" method="GET" class="portal-search-form" id="portalSearchForm">
+            <div class="portal-search-input-wrap">
+              <input 
+                type="text" 
+                name="q" 
+                id="portalQueryInput"
+                placeholder="Inquire regarding bonafide certificates, hostel dues, scholarship criteria, exam dates..." 
+                class="form-input portal-search-input" 
+                required
+              />
+              <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" stroke-width="2" style="position: absolute; left: 1rem; top: 15px; color: var(--color-text-light);">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </div>
+            <button type="submit" class="btn btn-primary portal-search-btn" id="portalSubmitBtn">
+              Inquire
+              <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none" stroke-width="2">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </button>
+          </form>
+
+          <div class="popular-queries-header">
+            <span>Frequently Consulted University Guidelines:</span>
+          </div>
+          <div class="popular-queries-grid">
+            <a href="/chat.html?q=How%20do%20I%20apply%20for%20a%20bonafide%20certificate%3F" class="query-chip">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+              <span>Bonafide Certificate Procedure</span>
+            </a>
+            <a href="/chat.html?q=What%20is%20the%20hostel%20fee%3F" class="query-chip">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+              <span>Hostel Allotment &amp; Mess Fees</span>
+            </a>
+            <a href="/chat.html?q=Scholarship%20eligibility%3F" class="query-chip">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+              <span>Scholarship &amp; Fee Concessions</span>
+            </a>
+            <a href="/chat.html?q=Exam%20registration%20process%3F" class="query-chip">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              <span>Semester Examination Forms</span>
+            </a>
+            <a href="/chat.html?q=Placement%20rules%3F" class="query-chip">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+              <span>Training &amp; Placement Policy</span>
+            </a>
+            <a href="/chat.html?q=Fee%20payment%20process%3F" class="query-chip">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+              <span>Tuition Fee Payment Schedule</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Student Services Grid -->
+        <div class="services-grid">
+          <div class="card" id="studentCard">
+            <div style="width: 44px; height: 44px; border-radius: var(--radius-md); background-color: var(--color-primary-subtle); color: var(--color-primary); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+              <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" fill="none" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+              </svg>
+            </div>
+            <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--color-text-main); margin-bottom: 0.5rem;">Student Chatbot</h3>
+            <p style="font-size: 0.9rem; color: var(--color-text-muted); margin-bottom: 1.25rem;">
+              Ask questions in natural language. Get immediate assistance on academic schedules, hostel regulations, examination forms, or general queries.
+            </p>
+            <a href="/chat.html" class="btn btn-primary btn-sm">Launch Chat Interface &rarr;</a>
+          </div>
+
+          <div class="card" id="noticeBoardCard">
+            <div style="width: 44px; height: 44px; border-radius: var(--radius-md); background-color: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+              <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" fill="none" stroke-width="2">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+            </div>
+            <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--color-text-main); margin-bottom: 0.5rem;">Official Notice Board</h3>
+            <p style="font-size: 0.9rem; color: var(--color-text-muted); margin-bottom: 1.25rem;">
+              Stay updated with active circulars, date sheets, fee deadlines, scholarship announcements, and administrative circulars.
+            </p>
+            <a href="#noticesSection" class="btn btn-outline btn-sm">View Latest Notices &rarr;</a>
+          </div>
+
+          <div class="card" id="papersRepoCard">
+            <div style="width: 44px; height: 44px; border-radius: var(--radius-md); background-color: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+              <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" fill="none" stroke-width="2">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+              </svg>
+            </div>
+            <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--color-text-main); margin-bottom: 0.5rem;">Question Papers</h3>
+            <p style="font-size: 0.9rem; color: var(--color-text-muted); margin-bottom: 1.25rem;">
+              Explore and download authentic university previous year question papers by branch, subject, and semester to prepare for exams.
+            </p>
+            <a href="#papersSection" class="btn btn-outline btn-sm">Browse Question Papers &rarr;</a>
+          </div>
+        </div>
+
+        <!-- ================================================================ -->
+        <!-- SECTION 1: LATEST NOTICES & OFFICIAL CIRCULARS                   -->
+        <!-- ================================================================ -->
+        <section class="section-container" id="noticesSection">
+          <div class="section-header-block">
+            <div>
+              <span class="section-badge badge-amber">
+                <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" fill="none" stroke-width="2.5">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+                Official Notice Board
+              </span>
+              <h3 class="section-heading-title">Latest Notices & Circulars</h3>
+              <p class="section-heading-sub">Stay updated with examination date sheets, scholarships, hostel notices, and campus announcements.</p>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <span class="status-pill" id="noticesCountBadge" style="background-color: var(--color-surface); border: 1px solid var(--color-border); font-size: 0.8rem; font-weight: 600;">
+                Loading notices...
+              </span>
+            </div>
+          </div>
+
+          <!-- Notice Filter Category Tabs -->
+          <div style="display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 0.75rem; margin-bottom: 1rem;">
+            <button type="button" class="btn btn-outline btn-sm notice-filter-btn active" data-category="all" style="background-color: var(--color-primary-subtle); color: var(--color-primary); border-color: transparent;">
+              All Notices
+            </button>
+            <button type="button" class="btn btn-outline btn-sm notice-filter-btn" data-category="Examination">
+              Examination
+            </button>
+            <button type="button" class="btn btn-outline btn-sm notice-filter-btn" data-category="Academic">
+              Academic
+            </button>
+            <button type="button" class="btn btn-outline btn-sm notice-filter-btn" data-category="Placement">
+              Placement
+            </button>
+            <button type="button" class="btn btn-outline btn-sm notice-filter-btn" data-category="Hostel">
+              Hostel
+            </button>
+            <button type="button" class="btn btn-outline btn-sm notice-filter-btn" data-category="Scholarship">
+              Scholarship
+            </button>
+          </div>
+
+          <!-- Dynamic Notices Container -->
+          <div class="notices-grid" id="noticesContainer">
+            <div class="card" style="text-align: center; padding: 2rem; color: var(--color-text-muted);">
+              Loading college circulars...
+            </div>
+          </div>
+        </section>
+
+        <!-- ================================================================ -->
+        <!-- SECTION 2: PREVIOUS YEAR QUESTION PAPERS REPOSITORY              -->
+        <!-- ================================================================ -->
+        <section class="section-container" id="papersSection">
+          <div class="section-header-block">
+            <div>
+              <span class="section-badge badge-blue">
+                <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" fill="none" stroke-width="2.5">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                </svg>
+                Exam Preparation Repository
+              </span>
+              <h3 class="section-heading-title">Previous Year Question Papers</h3>
+              <p class="section-heading-sub">Search, preview, and download authentic university question papers by subject, course, and semester.</p>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <span class="status-pill" id="papersCountBadge" style="background-color: var(--color-surface); border: 1px solid var(--color-border); font-size: 0.8rem; font-weight: 600;">
+                Loading papers...
+              </span>
+            </div>
+          </div>
+
+          <!-- Filter & Search Controls Bar -->
+          <div class="filter-bar">
+            <div class="filter-input-group">
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input type="text" id="paperSearchInput" placeholder="Search by paper title, subject, or keywords..." aria-label="Search question papers" />
+            </div>
+
+            <select class="filter-select" id="paperCourseSelect" aria-label="Filter by course">
+              <option value="all">All Courses</option>
+            </select>
+
+            <select class="filter-select" id="paperSemesterSelect" aria-label="Filter by semester">
+              <option value="all">All Semesters</option>
+            </select>
+
+            <select class="filter-select" id="paperYearSelect" aria-label="Filter by academic year">
+              <option value="all">All Academic Years</option>
+            </select>
+
+            <button type="button" class="btn btn-outline btn-sm" id="resetPaperFiltersBtn" style="padding: 0.4rem 0.75rem;">
+              Reset Filters
+            </button>
+          </div>
+
+          <!-- Dynamic Papers Grid -->
+          <div class="papers-grid" id="papersContainer">
+            <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 2rem; color: var(--color-text-muted);">
+              Loading previous year question papers...
+            </div>
+          </div>
+
+          <!-- Empty State (Hidden by default) -->
+          <div class="card" id="papersEmptyState" style="display: none; text-align: center; padding: 3rem 1.5rem; margin-top: 1rem;">
+            <div style="width: 48px; height: 48px; border-radius: 50%; background-color: var(--color-primary-subtle); color: var(--color-primary); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem auto;">
+              <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" fill="none" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </div>
+            <h4 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--color-text-main);">No Question Papers Match Your Query</h4>
+            <p style="font-size: 0.9rem; color: var(--color-text-muted); max-width: 500px; margin: 0 auto 1.25rem auto;">
+              Try clearing filters or search by a broader subject name. You can also upload new exam papers via the Admin Portal.
+            </p>
+            <a href="/admin.html" class="btn btn-primary btn-sm">Upload Paper in Admin &rarr;</a>
+          </div>
+        </section>
+      </main>
+
+      <!-- Reader Modal for Full Notice Details -->
+      <div class="modal-overlay" id="homeReaderModal">
+        <div class="modal-card" style="max-width: 680px;">
+          <div class="modal-header">
+            <div>
+              <h3 id="homeReaderTitle" style="font-size: 1.25rem; font-weight: 800; color: var(--color-primary-dark); margin: 0 0 0.25rem 0;">Circular Details</h3>
+              <div id="homeReaderMeta" style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;"></div>
+            </div>
+            <button type="button" class="modal-close-btn" id="homeReaderCloseBtn" aria-label="Close modal">&times;</button>
+          </div>
+          <div class="modal-body" id="homeReaderContent" style="padding: 1.5rem;">
+            <!-- Content injected here -->
+          </div>
+          <div class="modal-footer" style="padding: 1rem 1.5rem; display: flex; justify-content: flex-end; gap: 0.75rem;">
+            <a href="#" id="homeReaderOpenTabBtn" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm">
+              Open in New Tab &nearr;
+            </a>
+            <a href="#" id="homeReaderDownloadBtn" class="btn btn-primary btn-sm" download>
+              Download Circular
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Reader / Viewer Modal for Question Papers (PDF and PNG) -->
+      <div class="modal-overlay" id="homePaperModal">
+        <div class="modal-card" style="max-width: 820px;">
+          <div class="modal-header">
+            <div>
+              <h3 id="homePaperTitle" style="font-size: 1.2rem; font-weight: 800; color: var(--color-primary-dark); margin: 0 0 0.25rem 0;">Question Paper</h3>
+              <div id="homePaperMeta" style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;"></div>
+            </div>
+            <button type="button" class="modal-close-btn" id="homePaperCloseBtn" aria-label="Close modal">&times;</button>
+          </div>
+          <div class="modal-body" id="homePaperBody" style="padding: 1.5rem;">
+            <!-- Viewer / Content dynamically injected -->
+          </div>
+          <div class="modal-footer" style="padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+            <div id="homePaperFileInfo" style="font-size: 0.8rem; color: var(--color-text-muted);"></div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <a href="#" id="homePaperOpenTabBtn" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm">
+                Open in New Tab &nearr;
+              </a>
+              <a href="#" id="homePaperDownloadBtn" class="btn btn-primary btn-sm" download>
+                Download Paper
+              </a>
+              <a href="#" id="homePaperAskAiBtn" class="btn btn-outline btn-sm">
+                🤖 Ask AI
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <footer class="college-footer" id="collegeFooter">
+        <div class="footer-content">
+          <div>
+            <strong>College AI Assistant</strong> &bull; Powered by Google Gemini & Firebase Firestore
+          </div>
+          <ul class="footer-rules">
+            <li>
+              <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              Never Hallucinate
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              Verified Document Citations
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              Strict Grounding
+            </li>
+          </ul>
+        </div>
+      </footer>
+    </div>
+
+    <script src="/js/home.js"></script>
+  </body>
+</html>

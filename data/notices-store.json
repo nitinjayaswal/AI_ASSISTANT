@@ -1,0 +1,63 @@
+[
+  {
+    "id": "notice-lh2b9u3",
+    "title": "Campus Tech Fest 2024 Schedule",
+    "description": "Official schedule chart for upcoming Annual Technical Fest 'Infotsav 2024'.",
+    "category": "Events",
+    "important": true,
+    "publishedDate": "2026-09-11",
+    "attachmentName": "tech_fest_schedule.png",
+    "attachmentSize": 195,
+    "attachmentPath": "/app/applet/data/uploads/notices/notice-lh2b9u3_tech_fest_schedule.png"
+  },
+  {
+    "id": "notice-exam-may2026",
+    "title": "End Semester May/June 2026 Examination Date Sheet & Admit Card Portal",
+    "description": "The Controller of Examinations has officially released the detailed date sheet for all undergraduate and postgraduate programs for the upcoming End Semester examinations commencing May 18, 2026. Hall tickets with examination center details will be downloadable through the Student ERP portal starting May 2, 2026. Students with fee arrears or attendance below 75% must resolve discrepancies before the deadline.",
+    "category": "Examination",
+    "important": true,
+    "publishedDate": "2026-04-10",
+    "attachmentName": "Notice_EndSem_DateSheet_2026.pdf",
+    "attachmentSize": 194560
+  },
+  {
+    "id": "notice-scholarship-2026",
+    "title": "Merit-cum-Means Scholarship 2025-26: Applications Open for Second Cycle",
+    "description": "The Dean Student Welfare (DSW) office invites applications from meritorious and economically disadvantaged students for the College Merit-cum-Means Financial Aid. Eligible students whose family annual income is under $6,000 (Rs. 4.5 Lakhs) and who maintain a CGPA of 7.5 or above can submit verification forms along with required tax receipts at Administrative Counter 3 by April 28, 2026.",
+    "category": "Scholarship",
+    "important": false,
+    "publishedDate": "2026-04-05",
+    "attachmentName": "Scholarship_Circular_Cycle2.pdf",
+    "attachmentSize": 154200
+  },
+  {
+    "id": "notice-placement-2026",
+    "title": "Annual Campus Placement Drive 2026: Tier-1 Tech Companies Visiting Schedule",
+    "description": "The Training and Placement Cell (TPC) announces the schedule for on-campus technical recruitment drives beginning May 25, 2026. Pre-placement talks and coding assessments will be held in the Central Computing Auditorium. Final-year students are advised to update their resume profiles on the TPC portal.",
+    "category": "Placement",
+    "important": true,
+    "publishedDate": "2026-03-22",
+    "attachmentName": "TPC_Drive_Schedule_2026.pdf",
+    "attachmentSize": 228000
+  },
+  {
+    "id": "notice-hostel-autumn2026",
+    "title": "Hostel Room Allotment & Biometric Registration for Autumn Session",
+    "description": "All continuing hostel residents are notified that the room renewal and allotment window for the Autumn 2026 semester will open from April 20 to May 5, 2026. Biometric attendance scanners at boys and girls hostels will be recalibrated on April 15. Please ensure mess caution dues are cleared to avoid allocation hold.",
+    "category": "Hostel",
+    "important": false,
+    "publishedDate": "2026-03-28",
+    "attachmentName": "Hostel_Allotment_Autumn2026.pdf",
+    "attachmentSize": 182300
+  },
+  {
+    "id": "notice-calendar-2026",
+    "title": "Academic Calendar Amendment: Summer Vacation & Remedial Classes",
+    "description": "As approved by the Academic Council, the summer recess for academic staff and students will commence from June 15, 2026 to July 20, 2026. Remedial coaching for students with backlogs will be conducted between June 22 and July 5, 2026.",
+    "category": "Academic",
+    "important": false,
+    "publishedDate": "2026-03-15",
+    "attachmentName": "Academic_Calendar_Amendment_2026.pdf",
+    "attachmentSize": 142100
+  }
+]
