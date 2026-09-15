@@ -112,6 +112,35 @@ document.addEventListener("DOMContentLoaded", () => {
   initPapersManager();
   initNoticesManager();
   initKnowledgeBaseManager();
+
+  // Manual Firebase Sync Trigger
+  const btnSyncFirebase = document.getElementById("btnSyncFirebase");
+  if (btnSyncFirebase) {
+    btnSyncFirebase.addEventListener("click", async () => {
+      btnSyncFirebase.disabled = true;
+      const originalHtml = btnSyncFirebase.innerHTML;
+      btnSyncFirebase.innerHTML = `
+        <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" fill="none" stroke-width="2" style="margin-right: 4px; animation: spin 1s linear infinite;">
+          <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+        </svg>
+        Syncing to Firestore...
+      `;
+      try {
+        const res = await fetch("/api/sync-firebase", { method: "POST" });
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message || "All image links, papers, and notices synced to Firebase!", "success");
+        } else {
+          showToast(data.error || "Failed to sync to Firebase", "error");
+        }
+      } catch (err) {
+        showToast("Error syncing to Firebase: " + err.message, "error");
+      } finally {
+        btnSyncFirebase.disabled = false;
+        btnSyncFirebase.innerHTML = originalHtml;
+      }
+    });
+  }
 });
 
 // --------------------------------------------------------------------------
@@ -175,7 +204,133 @@ function initPapersManager() {
   const resetBtn = document.getElementById("resetPapersBtn");
   const emptyState = document.getElementById("papersTableEmptyState");
 
+  // Mode switcher elements
+  const modeFileBtn = document.getElementById("paperModeFileBtn");
+  const modeLinkBtn = document.getElementById("paperModeLinkBtn");
+  const fileContainer = document.getElementById("paperFileContainer");
+  const linkContainer = document.getElementById("paperLinkContainer");
+  const imageUrlInput = document.getElementById("paperImageUrlInput");
+  const testLinkBtn = document.getElementById("paperTestLinkBtn");
+  const imagePreviewBox = document.getElementById("paperImagePreviewBox");
+  const imagePreviewImg = document.getElementById("paperImagePreviewImg");
+  const previewUrlText = document.getElementById("paperPreviewUrlText");
+  const previewOpenLink = document.getElementById("paperPreviewOpenLink");
+  const clearLinkBtn = document.getElementById("paperClearLinkBtn");
+
+  let currentAttachmentMode = "file"; // "file" or "link"
   let selectedPaperFile = null;
+
+  // Setup mode toggling
+  if (modeFileBtn && modeLinkBtn && fileContainer && linkContainer) {
+    modeFileBtn.addEventListener("click", () => {
+      currentAttachmentMode = "file";
+      modeFileBtn.classList.add("active");
+      modeLinkBtn.classList.remove("active");
+      fileContainer.style.display = "block";
+      linkContainer.style.display = "none";
+    });
+
+    modeLinkBtn.addEventListener("click", () => {
+      currentAttachmentMode = "link";
+      modeLinkBtn.classList.add("active");
+      modeFileBtn.classList.remove("active");
+      linkContainer.style.display = "block";
+      fileContainer.style.display = "none";
+      if (imageUrlInput) imageUrlInput.focus();
+    });
+  }
+
+  let paperPreviewDebounce = null;
+
+  // Handle URL input preview with automatic resolution & proxy fallback
+  async function updateImageLinkPreview(url) {
+    if (!url || !url.trim()) {
+      if (imagePreviewBox) imagePreviewBox.style.display = "none";
+      return;
+    }
+    const cleanUrl = url.trim();
+    if (previewUrlText) previewUrlText.textContent = cleanUrl;
+    if (previewOpenLink) previewOpenLink.href = cleanUrl;
+    if (imagePreviewBox) imagePreviewBox.style.display = "flex";
+
+    const statusContainer = imagePreviewBox.querySelector(".preview-status");
+    if (statusContainer) {
+      statusContainer.innerHTML = '<span class="preview-dot" style="background: #00B4D8;"></span><span style="font-weight: 600; color: var(--color-primary);">Resolving image link...</span>';
+    }
+
+    try {
+      const res = await fetch(`/api/resolve-image?url=${encodeURIComponent(cleanUrl)}`);
+      const data = await res.json();
+      const directUrl = (data && data.directUrl) ? data.directUrl : cleanUrl;
+
+      if (previewOpenLink) previewOpenLink.href = directUrl;
+
+      if (imagePreviewImg) {
+        imagePreviewImg.referrerPolicy = "no-referrer";
+        imagePreviewImg.crossOrigin = "anonymous";
+        imagePreviewImg.dataset.triedProxy = "false";
+
+        imagePreviewImg.onload = () => {
+          if (statusContainer) {
+            statusContainer.innerHTML = '<span class="preview-dot" style="background: var(--color-success);"></span><span style="font-weight: 600; color: var(--color-success);">Direct Image Preview Active</span>';
+          }
+        };
+
+        imagePreviewImg.onerror = () => {
+          if (imagePreviewImg.dataset.triedProxy !== "true") {
+            imagePreviewImg.dataset.triedProxy = "true";
+            imagePreviewImg.src = `/api/proxy-image?url=${encodeURIComponent(directUrl)}`;
+          } else {
+            if (statusContainer) {
+              statusContainer.innerHTML = '<span class="preview-dot" style="background: #f59e0b;"></span><span style="font-weight: 600; color: #f59e0b;">External Link (Open Link to view)</span>';
+            }
+          }
+        };
+
+        imagePreviewImg.src = directUrl;
+      }
+    } catch (err) {
+      if (imagePreviewImg) imagePreviewImg.src = cleanUrl;
+    }
+  }
+
+  if (imageUrlInput) {
+    imageUrlInput.addEventListener("input", (e) => {
+      const url = e.target.value.trim();
+      clearTimeout(paperPreviewDebounce);
+      if (url.length > 5) {
+        paperPreviewDebounce = setTimeout(() => updateImageLinkPreview(url), 400);
+      } else if (!url) {
+        if (imagePreviewBox) imagePreviewBox.style.display = "none";
+      }
+    });
+
+    imageUrlInput.addEventListener("change", (e) => {
+      clearTimeout(paperPreviewDebounce);
+      updateImageLinkPreview(e.target.value.trim());
+    });
+  }
+
+  if (testLinkBtn && imageUrlInput) {
+    testLinkBtn.addEventListener("click", () => {
+      const url = imageUrlInput.value.trim();
+      if (!url) {
+        showToast("Please enter an image or paper URL first.", "error");
+        return;
+      }
+      clearTimeout(paperPreviewDebounce);
+      updateImageLinkPreview(url);
+      showToast("Loading and resolving image preview...", "info");
+    });
+  }
+
+  if (clearLinkBtn && imageUrlInput) {
+    clearLinkBtn.addEventListener("click", () => {
+      imageUrlInput.value = "";
+      if (imagePreviewBox) imagePreviewBox.style.display = "none";
+      if (imagePreviewImg) imagePreviewImg.src = "";
+    });
+  }
 
   // Dropzone interactions
   if (dropzone && fileInput) {
@@ -255,9 +410,15 @@ function initPapersManager() {
       const semester = paperSemesterInput.value;
       const academicYear = paperYearInput.value;
       const examType = paperExamTypeInput.value;
+      const imageUrl = imageUrlInput ? imageUrlInput.value.trim() : "";
 
       if (!title || !subject || !description) {
         showToast("Please provide Title, Subject, and Description.", "error");
+        return;
+      }
+
+      if (!selectedPaperFile && !imageUrl) {
+        showToast("Please attach a question paper file or provide an image/web link.", "error");
         return;
       }
 
@@ -269,6 +430,11 @@ function initPapersManager() {
       formData.append("semester", semester);
       formData.append("academicYear", academicYear);
       formData.append("examType", examType);
+
+      if (imageUrl) {
+        formData.append("imageUrl", imageUrl);
+        formData.append("linkUrl", imageUrl);
+      }
 
       if (selectedPaperFile) {
         formData.append("paperFile", selectedPaperFile);
@@ -286,24 +452,113 @@ function initPapersManager() {
           body: formData
         });
 
-        if (!res.ok) {
-          const errData = await res.json().catch(() => ({}));
-          throw new Error(errData.error || "Failed to upload paper");
+        let data = null;
+        const contentType = res.headers.get("content-type") || "";
+        if (contentType.includes("application/json")) {
+          data = await res.json();
+        } else {
+          const text = await res.text().catch(() => "");
+          if (!res.ok) {
+            if (res.status === 413) {
+              throw new Error("File is too large. Please select a file under 50 MB.");
+            }
+            throw new Error(`Server returned error ${res.status}: ${res.statusText || "Service unavailable"}`);
+          }
+          throw new Error("Unexpected server response format. Please try again.");
         }
 
-        const newPaper = await res.json();
-        showToast(`Question Paper "${newPaper.title}" uploaded successfully!`, "success");
+        if (!res.ok || (data && data.error)) {
+          throw new Error((data && data.error) || "Failed to upload paper");
+        }
+
+        const newPaper = (data && data.paper) || data || {};
+        const paperTitle = newPaper.title || title || "Question Paper";
+        showToast(`Question Paper "${paperTitle}" uploaded successfully!`, "success");
+
+        // Sync to Firebase Firestore papers & image collections
+        const finalImageLink = newPaper.imageUrl || imageUrl || "";
+        if (finalImageLink) {
+          try {
+            await fetch("/api/sync-image", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                id: newPaper.id,
+                link: finalImageLink,
+                imageUrl: finalImageLink,
+                title: paperTitle,
+                type: "paper",
+                subject: newPaper.subject || ""
+              })
+            });
+            console.log("[Firebase] Image link stored in Firestore collection 'image' for paper:", newPaper.id);
+          } catch (syncErr) {
+            console.warn("[Firebase] /api/sync-image notice:", syncErr.message);
+          }
+        }
+
+        if (typeof window.firebase !== "undefined" && window.firebase.firestore) {
+          try {
+            const db = window.firebase.firestore();
+            const syncPromises = [
+              db.collection("papers").doc(newPaper.id).set({
+                id: newPaper.id,
+                title: newPaper.title,
+                description: newPaper.description,
+                subject: newPaper.subject,
+                course: newPaper.course,
+                semester: newPaper.semester,
+                academicYear: newPaper.academicYear,
+                examType: newPaper.examType,
+                fileName: newPaper.fileName || "",
+                imageUrl: finalImageLink,
+                linkUrl: finalImageLink,
+                downloadCount: newPaper.downloadCount || 0,
+                uploadDate: newPaper.uploadDate || new Date().toISOString(),
+                createdAt: new Date().toISOString()
+              }, { merge: true })
+            ];
+
+            if (finalImageLink) {
+              syncPromises.push(
+                db.collection("image").doc(newPaper.id).set({
+                  id: newPaper.id,
+                  link: finalImageLink,
+                  imageUrl: finalImageLink,
+                  title: newPaper.title,
+                  type: "paper",
+                  createdAt: new Date().toISOString()
+                }, { merge: true })
+              );
+            }
+
+            await Promise.race([
+              Promise.all(syncPromises),
+              new Promise((_, reject) => setTimeout(() => reject(new Error("Firestore sync timeout")), 2500))
+            ]);
+            console.log("[Firebase] Synced paper and image link to Firestore:", newPaper.id);
+          } catch (fireErr) {
+            console.warn("[Firebase] Paper firestore sync notice:", fireErr.message);
+          }
+        }
 
         // Reset form
         paperForm.reset();
         selectedPaperFile = null;
         if (fileInput) fileInput.value = "";
         if (selectedFileCard) selectedFileCard.style.display = "none";
+        if (imageUrlInput) imageUrlInput.value = "";
+        if (imagePreviewBox) imagePreviewBox.style.display = "none";
+        if (modeFileBtn) modeFileBtn.click();
 
         await loadPapers();
       } catch (err) {
         console.error("Paper upload error:", err);
-        showToast("Upload failed: " + err.message, "error");
+        let errorMsg = err.message || "Failed to upload paper";
+        if (errorMsg.includes("Failed to fetch")) {
+          errorMsg = "Network connection interrupted or server was reconnecting. Please try again.";
+        }
+        showToast("Upload failed: " + errorMsg, "error");
       } finally {
         if (submitBtn) {
           submitBtn.disabled = false;
@@ -404,17 +659,18 @@ function renderPapersTable() {
   if (emptyState) emptyState.style.display = "none";
 
   tbody.innerHTML = filtered.map(paper => {
+    const hasImageLink = Boolean(paper.imageUrl);
     const downloadUrl = `/api/papers/${encodeURIComponent(paper.id)}/download`;
-    const openUrl = `/api/papers/${encodeURIComponent(paper.id)}/file?view=inline`;
-    const isPng = (paper.fileName || "").toLowerCase().endsWith(".png");
-    const badgeBg = isPng ? "#fef3c7" : "#dbeafe";
-    const badgeColor = isPng ? "#d97706" : "#1d4ed8";
-    const badgeLabel = isPng ? "PNG" : "PDF";
+    const openUrl = paper.imageUrl ? paper.imageUrl : `/api/papers/${encodeURIComponent(paper.id)}/file?view=inline`;
+    const isPng = (paper.fileName || "").toLowerCase().endsWith(".png") || (paper.imageUrl && paper.imageUrl.toLowerCase().includes(".png"));
+    const badgeBg = hasImageLink ? "#E0F2FE" : "#CAF0F8";
+    const badgeColor = hasImageLink ? "#0369A1" : (isPng ? "#03045E" : "#023EBA");
+    const badgeLabel = hasImageLink ? "IMAGE LINK 🔗" : (isPng ? "PNG" : "PDF");
 
     return `
       <tr>
         <td class="doc-name-cell">
-          <span class="pdf-badge" style="background-color: ${badgeBg}; color: ${badgeColor}; font-weight: 700;">${badgeLabel}</span>
+          <span class="pdf-badge" style="background-color: ${badgeBg}; color: ${badgeColor}; border: 1px solid #00B4D8; font-weight: 700;">${badgeLabel}</span>
           <div>
             <strong>${escapeHtml(paper.title)}</strong>
             <div style="font-size: 0.75rem; color: var(--color-primary-light); font-weight: 600;">
@@ -433,10 +689,20 @@ function renderPapersTable() {
           <span class="category-tag">${escapeHtml(paper.examType || "End Semester")}</span>
         </td>
         <td style="font-size: 0.8rem; color: var(--color-text-muted);">
-          <div style="font-family: monospace; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-            ${escapeHtml(paper.fileName)}
-          </div>
-          <div>${formatBytes(paper.fileSize)}</div>
+          ${hasImageLink ? `
+            <a href="${paper.imageUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 0.35rem; color: var(--color-primary); font-weight: 600; text-decoration: underline;" title="${escapeHtml(paper.imageUrl)}">
+              <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+              </svg>
+              <span>Image Link &nearr;</span>
+            </a>
+          ` : `
+            <div style="font-family: monospace; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              ${escapeHtml(paper.fileName)}
+            </div>
+            <div>${formatBytes(paper.fileSize)}</div>
+          `}
         </td>
         <td style="font-size: 0.85rem; font-weight: 600; text-align: center;">
           ${paper.downloadCount || 0}
@@ -447,9 +713,9 @@ function renderPapersTable() {
               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
               <circle cx="12" cy="12" r="3"></circle>
             </svg>
-            Open
+            ${hasImageLink ? 'View Link' : 'Open'}
           </a>
-          <a href="${downloadUrl}" download="${escapeHtml(paper.fileName)}" class="btn btn-outline btn-sm" title="Download paper" style="padding: 0.35rem 0.6rem;">
+          <a href="${downloadUrl}" download="${escapeHtml(paper.fileName || 'paper.pdf')}" class="btn btn-outline btn-sm" title="Download paper" style="padding: 0.35rem 0.6rem;">
             <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2" style="margin-right: 3px; vertical-align: -1px;">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
               <polyline points="7 10 12 15 17 10"></polyline>
@@ -502,7 +768,133 @@ function initNoticesManager() {
   const resetBtn = document.getElementById("resetNoticesBtn");
   const emptyState = document.getElementById("noticesTableEmptyState");
 
+  // Mode switcher elements
+  const modeFileBtn = document.getElementById("noticeModeFileBtn");
+  const modeLinkBtn = document.getElementById("noticeModeLinkBtn");
+  const fileContainer = document.getElementById("noticeFileContainer");
+  const linkContainer = document.getElementById("noticeLinkContainer");
+  const imageUrlInput = document.getElementById("noticeImageUrlInput");
+  const testLinkBtn = document.getElementById("noticeTestLinkBtn");
+  const imagePreviewBox = document.getElementById("noticeImagePreviewBox");
+  const imagePreviewImg = document.getElementById("noticeImagePreviewImg");
+  const previewUrlText = document.getElementById("noticePreviewUrlText");
+  const previewOpenLink = document.getElementById("noticePreviewOpenLink");
+  const clearLinkBtn = document.getElementById("noticeClearLinkBtn");
+
+  let currentAttachmentMode = "file"; // "file" or "link"
   let selectedNoticeFile = null;
+
+  // Setup mode toggling
+  if (modeFileBtn && modeLinkBtn && fileContainer && linkContainer) {
+    modeFileBtn.addEventListener("click", () => {
+      currentAttachmentMode = "file";
+      modeFileBtn.classList.add("active");
+      modeLinkBtn.classList.remove("active");
+      fileContainer.style.display = "block";
+      linkContainer.style.display = "none";
+    });
+
+    modeLinkBtn.addEventListener("click", () => {
+      currentAttachmentMode = "link";
+      modeLinkBtn.classList.add("active");
+      modeFileBtn.classList.remove("active");
+      linkContainer.style.display = "block";
+      fileContainer.style.display = "none";
+      if (imageUrlInput) imageUrlInput.focus();
+    });
+  }
+
+  let noticePreviewDebounce = null;
+
+  // Handle URL input preview with automatic resolution & proxy fallback
+  async function updateNoticeImageLinkPreview(url) {
+    if (!url || !url.trim()) {
+      if (imagePreviewBox) imagePreviewBox.style.display = "none";
+      return;
+    }
+    const cleanUrl = url.trim();
+    if (previewUrlText) previewUrlText.textContent = cleanUrl;
+    if (previewOpenLink) previewOpenLink.href = cleanUrl;
+    if (imagePreviewBox) imagePreviewBox.style.display = "flex";
+
+    const statusContainer = imagePreviewBox.querySelector(".preview-status");
+    if (statusContainer) {
+      statusContainer.innerHTML = '<span class="preview-dot" style="background: #00B4D8;"></span><span style="font-weight: 600; color: var(--color-primary);">Resolving image link...</span>';
+    }
+
+    try {
+      const res = await fetch(`/api/resolve-image?url=${encodeURIComponent(cleanUrl)}`);
+      const data = await res.json();
+      const directUrl = (data && data.directUrl) ? data.directUrl : cleanUrl;
+
+      if (previewOpenLink) previewOpenLink.href = directUrl;
+
+      if (imagePreviewImg) {
+        imagePreviewImg.referrerPolicy = "no-referrer";
+        imagePreviewImg.crossOrigin = "anonymous";
+        imagePreviewImg.dataset.triedProxy = "false";
+
+        imagePreviewImg.onload = () => {
+          if (statusContainer) {
+            statusContainer.innerHTML = '<span class="preview-dot" style="background: var(--color-success);"></span><span style="font-weight: 600; color: var(--color-success);">Direct Image Preview Active</span>';
+          }
+        };
+
+        imagePreviewImg.onerror = () => {
+          if (imagePreviewImg.dataset.triedProxy !== "true") {
+            imagePreviewImg.dataset.triedProxy = "true";
+            imagePreviewImg.src = `/api/proxy-image?url=${encodeURIComponent(directUrl)}`;
+          } else {
+            if (statusContainer) {
+              statusContainer.innerHTML = '<span class="preview-dot" style="background: #f59e0b;"></span><span style="font-weight: 600; color: #f59e0b;">External Link (Open Link to view)</span>';
+            }
+          }
+        };
+
+        imagePreviewImg.src = directUrl;
+      }
+    } catch (err) {
+      if (imagePreviewImg) imagePreviewImg.src = cleanUrl;
+    }
+  }
+
+  if (imageUrlInput) {
+    imageUrlInput.addEventListener("input", (e) => {
+      const url = e.target.value.trim();
+      clearTimeout(noticePreviewDebounce);
+      if (url.length > 5) {
+        noticePreviewDebounce = setTimeout(() => updateNoticeImageLinkPreview(url), 400);
+      } else if (!url) {
+        if (imagePreviewBox) imagePreviewBox.style.display = "none";
+      }
+    });
+
+    imageUrlInput.addEventListener("change", (e) => {
+      clearTimeout(noticePreviewDebounce);
+      updateNoticeImageLinkPreview(e.target.value.trim());
+    });
+  }
+
+  if (testLinkBtn && imageUrlInput) {
+    testLinkBtn.addEventListener("click", () => {
+      const url = imageUrlInput.value.trim();
+      if (!url) {
+        showToast("Please enter an image or document URL first.", "error");
+        return;
+      }
+      clearTimeout(noticePreviewDebounce);
+      updateNoticeImageLinkPreview(url);
+      showToast("Loading and resolving image preview...", "info");
+    });
+  }
+
+  if (clearLinkBtn && imageUrlInput) {
+    clearLinkBtn.addEventListener("click", () => {
+      imageUrlInput.value = "";
+      if (imagePreviewBox) imagePreviewBox.style.display = "none";
+      if (imagePreviewImg) imagePreviewImg.src = "";
+    });
+  }
 
   if (dropzone && fileInput) {
     dropzone.addEventListener("click", () => fileInput.click());
@@ -565,6 +957,7 @@ function initNoticesManager() {
       const description = noticeDescInput.value.trim();
       const category = noticeCategoryInput.value;
       const important = noticeImportantInput.checked;
+      const imageUrl = imageUrlInput ? imageUrlInput.value.trim() : "";
 
       if (!title || !description) {
         showToast("Please provide Notice Title and Description.", "error");
@@ -576,6 +969,10 @@ function initNoticesManager() {
       formData.append("description", description);
       formData.append("category", category);
       formData.append("important", important ? "true" : "false");
+      if (imageUrl) {
+        formData.append("imageUrl", imageUrl);
+        formData.append("linkUrl", imageUrl);
+      }
 
       if (selectedNoticeFile) {
         formData.append("attachmentFile", selectedNoticeFile);
@@ -593,24 +990,109 @@ function initNoticesManager() {
           body: formData
         });
 
-        if (!res.ok) {
-          const errData = await res.json().catch(() => ({}));
-          throw new Error(errData.error || "Failed to publish notice");
+        let data = null;
+        const contentType = res.headers.get("content-type") || "";
+        if (contentType.includes("application/json")) {
+          data = await res.json();
+        } else {
+          const text = await res.text().catch(() => "");
+          if (!res.ok) {
+            if (res.status === 413) {
+              throw new Error("Attachment is too large. Please select a file under 50 MB.");
+            }
+            throw new Error(`Server returned error ${res.status}: ${res.statusText || "Service unavailable"}`);
+          }
+          throw new Error("Unexpected server response format. Please try again.");
         }
 
-        const newNotice = await res.json();
-        showToast(`Notice "${newNotice.title}" published successfully!`, "success");
+        if (!res.ok || (data && data.error)) {
+          throw new Error((data && data.error) || "Failed to publish notice");
+        }
+
+        const newNotice = (data && data.notice) || data || {};
+        const noticeTitle = newNotice.title || title || "Notice";
+        showToast(`Notice "${noticeTitle}" published successfully!`, "success");
+
+        // Sync notice to Firebase Firestore notices & image collections
+        const finalNoticeImageLink = newNotice.imageUrl || imageUrl || "";
+        if (finalNoticeImageLink) {
+          try {
+            await fetch("/api/sync-image", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                id: newNotice.id,
+                link: finalNoticeImageLink,
+                imageUrl: finalNoticeImageLink,
+                title: noticeTitle,
+                type: "notice",
+                category: newNotice.category || ""
+              })
+            });
+            console.log("[Firebase] Notice image link stored in Firestore collection 'image':", newNotice.id);
+          } catch (syncErr) {
+            console.warn("[Firebase] /api/sync-image notice:", syncErr.message);
+          }
+        }
+
+        if (typeof window.firebase !== "undefined" && window.firebase.firestore) {
+          try {
+            const db = window.firebase.firestore();
+            const noticePromises = [
+              db.collection("notices").doc(newNotice.id).set({
+                id: newNotice.id,
+                title: newNotice.title,
+                description: newNotice.description,
+                category: newNotice.category,
+                important: Boolean(newNotice.important),
+                publishedDate: newNotice.publishedDate || new Date().toISOString().split("T")[0],
+                imageUrl: finalNoticeImageLink,
+                linkUrl: finalNoticeImageLink,
+                attachmentName: newNotice.attachmentName || "",
+                createdAt: new Date().toISOString()
+              }, { merge: true })
+            ];
+
+            if (finalNoticeImageLink) {
+              noticePromises.push(
+                db.collection("image").doc(newNotice.id).set({
+                  id: newNotice.id,
+                  link: finalNoticeImageLink,
+                  imageUrl: finalNoticeImageLink,
+                  title: newNotice.title,
+                  type: "notice",
+                  createdAt: new Date().toISOString()
+                }, { merge: true })
+              );
+            }
+
+            await Promise.race([
+              Promise.all(noticePromises),
+              new Promise((_, reject) => setTimeout(() => reject(new Error("Firestore sync timeout")), 2500))
+            ]);
+            console.log("[Firebase] Synced notice and image link to Firestore:", newNotice.id);
+          } catch (fireErr) {
+            console.warn("[Firebase] Notice firestore sync notice:", fireErr.message);
+          }
+        }
 
         // Reset form
         noticeForm.reset();
         selectedNoticeFile = null;
         if (fileInput) fileInput.value = "";
         if (selectedFileCard) selectedFileCard.style.display = "none";
+        if (imageUrlInput) imageUrlInput.value = "";
+        if (imagePreviewBox) imagePreviewBox.style.display = "none";
+        if (modeFileBtn) modeFileBtn.click();
 
         await loadNotices();
       } catch (err) {
         console.error("Notice publish error:", err);
-        showToast("Publish failed: " + err.message, "error");
+        let errorMsg = err.message || "Failed to publish notice";
+        if (errorMsg.includes("Failed to fetch")) {
+          errorMsg = "Network connection interrupted or server was reconnecting. Please try again.";
+        }
+        showToast("Publish failed: " + errorMsg, "error");
       } finally {
         if (submitBtn) {
           submitBtn.disabled = false;
@@ -708,12 +1190,13 @@ function renderNoticesTable() {
   if (emptyState) emptyState.style.display = "none";
 
   tbody.innerHTML = filtered.map(notice => {
+    const hasImageLink = Boolean(notice.imageUrl);
     const downloadUrl = `/api/notices/${encodeURIComponent(notice.id)}/attachment?download=true`;
-    const openUrl = `/api/notices/${encodeURIComponent(notice.id)}/file?view=inline`;
-    const isPng = (notice.attachmentName || "").toLowerCase().endsWith(".png");
-    const badgeBg = isPng ? "#e0e7ff" : "#fef3c7";
-    const badgeColor = isPng ? "#4338ca" : "#b45309";
-    const badgeLabel = isPng ? "PNG NOTICE" : "CIRCULAR";
+    const openUrl = notice.imageUrl ? notice.imageUrl : `/api/notices/${encodeURIComponent(notice.id)}/file?view=inline`;
+    const isPng = (notice.attachmentName || "").toLowerCase().endsWith(".png") || (notice.imageUrl && notice.imageUrl.toLowerCase().includes(".png"));
+    const badgeBg = hasImageLink ? "#E0F2FE" : "#CAF0F8";
+    const badgeColor = hasImageLink ? "#0369A1" : (isPng ? "#023EBA" : "#03045E");
+    const badgeLabel = hasImageLink ? "IMAGE LINK 🔗" : (isPng ? "PNG NOTICE" : "CIRCULAR");
 
     const formattedDate = notice.publishedDate ? new Date(notice.publishedDate).toLocaleDateString("en-US", {
       year: "numeric",
@@ -724,7 +1207,7 @@ function renderNoticesTable() {
     return `
       <tr>
         <td class="doc-name-cell">
-          <span class="pdf-badge" style="background-color: ${badgeBg}; color: ${badgeColor}; font-weight: 700;">${badgeLabel}</span>
+          <span class="pdf-badge" style="background-color: ${badgeBg}; color: ${badgeColor}; border: 1px solid #00B4D8; font-weight: 700;">${badgeLabel}</span>
           <div>
             <strong>${escapeHtml(notice.title)}</strong>
             <div style="display: flex; align-items: center; gap: 0.35rem; margin-top: 2px;">
@@ -746,9 +1229,19 @@ function renderNoticesTable() {
           ${formattedDate}
         </td>
         <td style="font-size: 0.8rem; color: var(--color-text-muted);">
-          <div style="font-family: monospace; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-            ${escapeHtml(notice.attachmentName || "Notice.pdf")}
-          </div>
+          ${hasImageLink ? `
+            <a href="${notice.imageUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 0.35rem; color: var(--color-primary); font-weight: 600; text-decoration: underline;" title="${escapeHtml(notice.imageUrl)}">
+              <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+              </svg>
+              <span>Image Link &nearr;</span>
+            </a>
+          ` : `
+            <div style="font-family: monospace; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              ${escapeHtml(notice.attachmentName || "Notice.pdf")}
+            </div>
+          `}
         </td>
         <td class="actions-cell">
           <a href="${openUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm" title="View circular document/image" style="padding: 0.35rem 0.6rem; color: var(--color-primary); font-weight: 600;">
@@ -756,7 +1249,7 @@ function renderNoticesTable() {
               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
               <circle cx="12" cy="12" r="3"></circle>
             </svg>
-            View
+            ${hasImageLink ? 'View Link' : 'View'}
           </a>
           <a href="${downloadUrl}" download="${escapeHtml(notice.attachmentName || 'Notice.pdf')}" class="btn btn-outline btn-sm" title="Download circular" style="padding: 0.35rem 0.6rem;">
             <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2" style="margin-right: 3px; vertical-align: -1px;">
@@ -965,12 +1458,24 @@ function initKnowledgeBaseManager() {
       body: formData
     });
 
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.error || "Upload failed on server");
+    let responseData = null;
+    const contentType = res.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+      responseData = await res.json();
+    } else {
+      const text = await res.text().catch(() => "");
+      if (!res.ok) {
+        if (res.status === 413) {
+          throw new Error("File is too large. Please select a document under 50 MB.");
+        }
+        throw new Error(`Server returned error ${res.status}: ${res.statusText || "Service unavailable"}`);
+      }
+      throw new Error("Unexpected server response format. Please try again.");
     }
 
-    const responseData = await res.json();
+    if (!res.ok || (responseData && responseData.error)) {
+      throw new Error((responseData && responseData.error) || "Upload failed on server");
+    }
 
     updateProgress(100, `Complete! Successfully indexed ${responseData.chunksCount || 0} chunks.`);
     showToast(`Successfully indexed "${title}" with ${responseData.chunksCount || 0} chunks!`, "success");

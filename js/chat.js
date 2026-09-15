@@ -226,10 +226,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const timestamp = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
     if (sender === "user") {
-      avatar.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`;
+      const student = window.StudentAuth?.currentUser;
+      if (student) {
+        if (student.photoURL) {
+          avatar.innerHTML = `<img src="${student.photoURL}" alt="${escapeHtml(student.displayName)}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover;" onerror="this.parentElement.textContent='${escapeHtml(student.displayName.charAt(0).toUpperCase())}'" />`;
+        } else {
+          avatar.textContent = (student.displayName || "S").charAt(0).toUpperCase();
+        }
+      } else {
+        avatar.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`;
+      }
+
       const bubble = document.createElement("div");
       bubble.className = "message-bubble";
-      bubble.innerHTML = `<p style="margin: 0;">${escapeHtml(text)}</p><span class="message-time">${timestamp}</span>`;
+      const studentTag = student ? `<div style="font-size: 0.72rem; font-weight: 700; color: #00B4D8; margin-bottom: 3px; display: flex; align-items: center; gap: 4px;"><span>${escapeHtml(student.displayName)}</span><span style="font-size: 0.65rem; background: rgba(0, 180, 216, 0.15); padding: 1px 4px; border-radius: 3px; color: #023EBA;">Student</span></div>` : "";
+      bubble.innerHTML = `${studentTag}<p style="margin: 0;">${escapeHtml(text)}</p><span class="message-time">${timestamp}</span>`;
       row.appendChild(avatar);
       row.appendChild(bubble);
       chatMessages.appendChild(row);
@@ -379,6 +390,13 @@ document.addEventListener("DOMContentLoaded", () => {
               </svg>
               <span>Print</span>
             </button>
+            <button type="button" class="answer-tool-btn gmail-btn" id="${uniqueId}_gmail" title="Send official advisory to your Gmail" style="color: #023EBA; font-weight: 600;">
+              <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg>
+              <span>Email Me</span>
+            </button>
           </div>
         </div>
       </div>
@@ -432,6 +450,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const copyBtn = document.getElementById(`${id}_copy`);
     const listenBtn = document.getElementById(`${id}_listen`);
     const printBtn = document.getElementById(`${id}_print`);
+    const gmailBtn = document.getElementById(`${id}_gmail`);
+
+    // Gmail Advisory Dispatch
+    if (gmailBtn) {
+      gmailBtn.addEventListener("click", () => {
+        if (window.StudentAuth) {
+          window.StudentAuth.sendAdvisoryToGmail("Academic Advisory Transcript", rawText);
+        }
+      });
+    }
 
     // 1. Copy Answer
     if (copyBtn) {
@@ -846,14 +874,19 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderWelcomeGreeting() {
+    const student = window.StudentAuth?.currentUser;
+    const personalizedGreeting = student
+      ? `Welcome, **${escapeHtml(student.displayName)}**! *(Verified UIET Student - ${escapeHtml(student.email)})*\n\nI can assist you with official circulars, procedures, and regulations regarding:\n* **Academic & Bonafide:** Application procedures, transcript requests, and syllabus verification.\n* **Examinations:** Semester registration, date sheets, and reappear guidelines.\n* **Hostel & Mess:** Room allotment rules, fee schedules, and campus curfew ordinances.\n* **Scholarships & Fees:** Government concessions, tuition fee payment schedules, and installment requests.\n\nPlease ask any question, or select one of the frequently consulted topics below.`
+      : "Welcome to the **UIET Academic Helpdesk**.\n\nI can assist you with official circulars, procedures, and regulations regarding:\n* **Academic & Bonafide:** Application procedures, transcript requests, and syllabus verification.\n* **Examinations:** Semester registration, date sheets, and reappear guidelines.\n* **Hostel & Mess:** Room allotment rules, fee schedules, and campus curfew ordinances.\n* **Scholarships & Fees:** Government concessions, tuition fee payment schedules, and installment requests.\n\n*Tip: Click **Student Sign In** in the top navigation to link your Gmail account for personalized advising.*";
+
     appendMessage(
       "assistant",
-      "Welcome to the **UIET Academic Helpdesk**.\n\nI can assist you with official circulars, procedures, and regulations regarding:\n* **Academic & Bonafide:** Application procedures, transcript requests, and syllabus verification.\n* **Examinations:** Semester registration, date sheets, and reappear guidelines.\n* **Hostel & Mess:** Room allotment rules, fee schedules, and campus curfew ordinances.\n* **Scholarships & Fees:** Government concessions, tuition fee payment schedules, and installment requests.\n\nPlease ask any question, or select one of the frequently consulted topics above.",
+      personalizedGreeting,
       {
         keyHighlights: [
+          student ? `Authenticated as ${student.displayName} (${student.email})` : "Sign in with Gmail for personalized academic advising",
           "Information verified against Panjab University ordinances",
-          "Includes administrative office window locations & fee schedules",
-          "Click any suggested query to get direct step-by-step guidance"
+          "Includes administrative office window locations & fee schedules"
         ],
         suggestedFollowUps: [
           "How do I apply for a bonafide certificate?",
@@ -863,6 +896,15 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     );
   }
+
+  // Listen for student login/logout to update chat identity dynamically
+  window.addEventListener("student-auth-changed", () => {
+    const history = sessionStorage.getItem("college_chat_history");
+    if (!history || history === "[]") {
+      chatMessages.innerHTML = "";
+      renderWelcomeGreeting();
+    }
+  });
 });
 
 // Global function to toggle document evidence snippet

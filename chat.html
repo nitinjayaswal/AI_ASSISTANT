@@ -9,6 +9,7 @@
     <meta property="og:description" content="Student Helpdesk for UIET Hoshiarpur" />
     <link rel="stylesheet" href="/css/style.css" />
     <link rel="stylesheet" href="/css/chat.css" />
+    <link rel="stylesheet" href="/css/student-auth.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -52,6 +53,7 @@
 
           <div class="nav-links" id="chatNavLinks">
             <a href="/index.html" class="nav-link" id="chatHomeLink">Portal Home</a>
+            <div id="studentAuthNav" class="student-auth-nav"></div>
             <a href="/admin.html" class="nav-btn secondary" id="chatAdminLink">
               <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2">
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
@@ -94,6 +96,10 @@
 
           <!-- Quick Topic Chips -->
           <div class="quick-topics" id="quickTopics">
+            <button type="button" class="quick-chip" data-prompt="Where can I find Previous Year Question Papers (PYQs)?">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+              <span>Question Papers (PYQs)</span>
+            </button>
             <button type="button" class="quick-chip" data-prompt="How do I apply for a bonafide certificate?">
               <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
               <span>Bonafide Certificate</span>
@@ -152,7 +158,12 @@
     </div>
 
     <!-- Scripts -->
+    <!-- Firebase Compatibility SDKs for Auth and Firestore -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
     <script src="/js/firebase-config.js"></script>
+    <script src="/js/student-auth.js"></script>
     <script src="/js/search.js"></script>
     <script src="/js/gemini.js"></script>
     <script src="/js/chat.js"></script>

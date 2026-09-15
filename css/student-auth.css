@@ -1,0 +1,527 @@
+/* ==========================================================================
+   Student Authentication & Google Sign-In Styles (Ocean Royale Theme)
+   ========================================================================== */
+
+.student-auth-nav {
+  display: inline-flex;
+  align-items: center;
+}
+
+.student-signin-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.825rem;
+  font-weight: 600;
+  border-radius: var(--radius-md, 8px);
+  background-color: #ffffff;
+  color: var(--ocean-primary-bg, #03045E);
+  border: 1.5px solid var(--ocean-highlight, #00B4D8);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.student-signin-btn:hover {
+  background-color: var(--ocean-card-bg, #CAF0F8);
+  border-color: var(--ocean-brand, #023EBA);
+  color: var(--ocean-brand, #023EBA);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 180, 216, 0.25);
+}
+
+.google-icon-svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* Signed-in Student Profile Pill */
+.student-profile-pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.75rem 0.3rem 0.4rem;
+  border-radius: 9999px;
+  background-color: #ffffff;
+  border: 1.5px solid var(--ocean-highlight, #00B4D8);
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(2, 62, 186, 0.08);
+  transition: all 0.2s ease;
+}
+
+.student-profile-pill:hover {
+  border-color: var(--ocean-brand, #023EBA);
+  box-shadow: 0 2px 8px rgba(0, 180, 216, 0.25);
+}
+
+.student-avatar-wrap {
+  position: relative;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--ocean-brand, #023EBA), var(--ocean-highlight, #00B4D8));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+.student-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.student-pill-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  text-align: left;
+}
+
+.student-pill-name {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ocean-primary-bg, #03045E);
+  max-width: 110px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.student-pill-badge {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #059669;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.student-pill-badge::before {
+  content: "";
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: #10b981;
+}
+
+/* Student Profile Dropdown Menu */
+.student-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 280px;
+  background-color: #ffffff;
+  border: 1px solid var(--ocean-highlight, #00B4D8);
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(3, 4, 94, 0.15);
+  padding: 1rem;
+  z-index: 1000;
+  display: none;
+  animation: dropdownFade 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.student-dropdown-menu.active {
+  display: block;
+}
+
+@keyframes dropdownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.student-dropdown-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 0.75rem;
+}
+
+.student-dropdown-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--ocean-brand, #023EBA), var(--ocean-highlight, #00B4D8));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.student-dropdown-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.student-dropdown-details {
+  overflow: hidden;
+}
+
+.student-dropdown-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--ocean-primary-bg, #03045E);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.student-dropdown-email {
+  font-size: 0.75rem;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.student-dropdown-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background-color: #ecfdf5;
+  color: #059669;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-top: 3px;
+}
+
+.student-dropdown-meta {
+  font-size: 0.75rem;
+  color: #475569;
+  background-color: var(--ocean-card-bg, #CAF0F8);
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+  line-height: 1.4;
+}
+
+.student-dropdown-meta strong {
+  color: var(--ocean-primary-bg, #03045E);
+}
+
+.student-dropdown-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.student-dropdown-btn {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.student-dropdown-btn.primary {
+  background-color: var(--ocean-brand, #023EBA);
+  color: #ffffff;
+  border: none;
+}
+
+.student-dropdown-btn.primary:hover {
+  background-color: var(--ocean-primary-bg, #03045E);
+}
+
+.student-dropdown-btn.danger {
+  background-color: #fff;
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+}
+
+.student-dropdown-btn.danger:hover {
+  background-color: #fef2f2;
+}
+
+/* ==========================================================================
+   Student Sign-In Modal
+   ========================================================================== */
+
+.student-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(3, 4, 94, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.student-modal-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.student-modal-card {
+  width: 100%;
+  max-width: 440px;
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(3, 4, 94, 0.25);
+  border: 1.5px solid var(--ocean-highlight, #00B4D8);
+  overflow: hidden;
+  transform: scale(0.95);
+  transition: transform 0.25s ease;
+}
+
+.student-modal-backdrop.active .student-modal-card {
+  transform: scale(1);
+}
+
+.student-modal-header {
+  background: linear-gradient(135deg, var(--ocean-primary-bg, #03045E), var(--ocean-brand, #023EBA));
+  padding: 1.5rem;
+  color: #ffffff;
+  position: relative;
+  text-align: center;
+}
+
+.student-modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: #ffffff;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: background 0.15s ease;
+}
+
+.student-modal-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.student-modal-icon {
+  width: 50px;
+  height: 50px;
+  margin: 0 auto 0.75rem;
+  background: #ffffff;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.student-modal-icon img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+.student-modal-header h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem;
+  color: #ffffff;
+}
+
+.student-modal-header p {
+  font-size: 0.8rem;
+  color: var(--ocean-card-bg, #CAF0F8);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.student-modal-body {
+  padding: 1.5rem;
+}
+
+.student-google-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  background-color: #ffffff;
+  color: #1f2937;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border: 1.5px solid #dadce0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.student-google-btn:hover {
+  background-color: #f8fafc;
+  border-color: #4285F4;
+  box-shadow: 0 4px 12px rgba(66, 133, 244, 0.2);
+  transform: translateY(-1px);
+}
+
+.student-auth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 1.25rem 0;
+  color: #94a3b8;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.student-auth-divider::before,
+.student-auth-divider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.student-auth-divider span {
+  padding: 0 0.75rem;
+}
+
+.student-manual-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.student-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  text-align: left;
+}
+
+.student-input-group label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ocean-primary-bg, #03045E);
+}
+
+.student-input-group input {
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  font-size: 0.85rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.student-input-group input:focus {
+  border-color: var(--ocean-highlight, #00B4D8);
+  box-shadow: 0 0 0 2px rgba(0, 180, 216, 0.2);
+}
+
+.student-submit-btn {
+  width: 100%;
+  padding: 0.7rem;
+  border-radius: 8px;
+  background-color: var(--ocean-brand, #023EBA);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.85rem;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.student-submit-btn:hover {
+  background-color: var(--ocean-primary-bg, #03045E);
+}
+
+.student-modal-footer {
+  padding: 0.85rem 1.5rem;
+  background-color: #f8fafc;
+  border-top: 1px solid #f1f5f9;
+  text-align: center;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.student-modal-alert {
+  padding: 0.6rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  margin-bottom: 0.75rem;
+  display: none;
+}
+
+.student-modal-alert.error {
+  background-color: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  display: block;
+}
+
+.student-modal-alert.success {
+  background-color: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+  display: block;
+}
+
+.student-modal-alert.info {
+  background-color: #eff6ff;
+  color: #1e3a8a;
+  border: 1.5px solid #93c5fd;
+  display: block;
+}
+
+.student-quick-card {
+  background: #f0fdf4;
+  border: 1.5px solid #86efac;
+  border-radius: 10px;
+  padding: 0.75rem;
+  margin-bottom: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.student-quick-card:hover {
+  border-color: #22c55e;
+}

@@ -5,15 +5,16 @@
  * with seamless fallback to the local Express/Functions API.
  */
 
-// Official Firebase Web Configuration
-// In production, replace these values with your Firebase Project credentials
+// Official Firebase Web Configuration provisioned for this project
 const firebaseConfig = {
-  apiKey: "AIzaSyDemoCollegeApiKey1234567890",
-  authDomain: "college-ai-assistant.firebaseapp.com",
-  projectId: "college-ai-assistant",
-  storageBucket: "college-ai-assistant.appspot.com",
-  messagingSenderId: "123456789012",
-  appId: "1:123456789012:web:abcdef123456"
+  projectId: "gen-lang-client-0950963299",
+  appId: "1:501133462431:web:bef497b242a10a64ec8baa",
+  apiKey: "AIzaSyDPh5A12NupPQh533Wiguaif1ShaQE7WA4",
+  authDomain: "gen-lang-client-0950963299.firebaseapp.com",
+  firestoreDatabaseId: "ai-studio-collegeaiassista-3b073e3e-0862-4f78-a6c0-e7bebff9c153",
+  storageBucket: "gen-lang-client-0950963299.firebasestorage.app",
+  messagingSenderId: "501133462431",
+  oAuthClientId: "501133462431-a674v3qj6i1d2o95bj18bejsemr9t569.apps.googleusercontent.com"
 };
 
 class FirebaseBridge {
@@ -27,7 +28,7 @@ class FirebaseBridge {
     this.init();
   }
 
-  init() {
+  async init() {
     // Check if Firebase CDN SDKs are loaded in the window
     if (typeof window.firebase !== "undefined" && window.firebase.initializeApp) {
       try {
@@ -37,20 +38,30 @@ class FirebaseBridge {
           this.app = window.firebase.app();
         }
         this.auth = window.firebase.auth ? window.firebase.auth() : null;
-        this.db = window.firebase.firestore ? window.firebase.firestore() : null;
+        if (window.firebase.firestore) {
+          try {
+            this.db = this.config.firestoreDatabaseId 
+              ? window.firebase.app().firestore(this.config.firestoreDatabaseId)
+              : window.firebase.firestore();
+          } catch (e) {
+            this.db = window.firebase.firestore();
+          }
+        } else {
+          this.db = null;
+        }
         this.storage = window.firebase.storage ? window.firebase.storage() : null;
         this.isInitialized = true;
-        console.log("[Firebase] Client SDK initialized successfully.");
+        console.log("[Firebase] Client SDK initialized with Project:", this.config.projectId, "and Database:", this.config.firestoreDatabaseId);
       } catch (err) {
         console.warn("[Firebase] Client initialization notice (using API fallback):", err.message);
       }
     } else {
-      console.log("[Firebase] Running in API Mode. Backend endpoints emulate Firestore & Functions.");
+      console.log("[Firebase] Running with full-stack Cloud Run + Firestore backend.");
     }
   }
 
   isConfigured() {
-    return this.isInitialized && this.config.apiKey !== "AIzaSyDemoCollegeApiKey1234567890";
+    return Boolean(this.config && this.config.apiKey && this.config.projectId);
   }
 
   /**

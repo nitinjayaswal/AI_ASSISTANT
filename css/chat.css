@@ -18,9 +18,9 @@
   display: flex;
   flex-direction: column;
   background-color: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: 1.5px solid var(--ocean-card-bg);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 20px rgba(3, 4, 94, 0.07);
   overflow: hidden;
   position: relative;
 }
@@ -29,7 +29,7 @@
 .chat-header {
   padding: 1rem 1.5rem;
   background-color: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1.5px solid var(--ocean-card-bg);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -46,11 +46,12 @@
   width: 38px;
   height: 38px;
   border-radius: var(--radius-md);
-  background-color: var(--color-primary-subtle);
-  color: var(--color-primary);
+  background-color: var(--ocean-primary-bg);
+  color: var(--ocean-card-bg);
   display: flex;
   align-items: center;
   justify-content: center;
+  border: 1.5px solid var(--ocean-highlight);
 }
 
 .chat-avatar svg {
@@ -61,7 +62,7 @@
 .chat-header-text h2 {
   font-size: 1rem;
   font-weight: 700;
-  color: var(--color-text-main);
+  color: var(--ocean-primary-bg);
 }
 
 .chat-header-text p {
@@ -81,7 +82,7 @@
 /* Quick Suggestion Chips */
 .quick-topics {
   padding: 0.75rem 1.5rem;
-  background-color: #fafbfc;
+  background-color: var(--color-bg);
   border-bottom: 1px solid var(--color-border);
   overflow-x: auto;
   white-space: nowrap;
@@ -112,9 +113,10 @@
 }
 
 .quick-chip:hover {
-  background-color: var(--color-primary-subtle);
-  border-color: #bfdbfe;
-  color: var(--color-primary);
+  background-color: var(--ocean-card-bg);
+  border-color: var(--ocean-highlight);
+  color: var(--ocean-brand);
+  box-shadow: 0 2px 6px rgba(0, 180, 216, 0.18);
   transform: translateY(-1px);
 }
 
@@ -317,12 +319,13 @@
 
 /* 2. Executive Highlights Summary */
 .answer-highlights-card {
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-left: 3.5px solid var(--color-primary);
+  background-color: var(--ocean-card-bg);
+  border: 1.5px solid var(--ocean-highlight);
+  border-left: 4.5px solid var(--ocean-brand);
   border-radius: var(--radius-md);
   padding: 0.875rem 1.1rem;
   margin-bottom: 1.25rem;
+  box-shadow: 0 2px 8px rgba(0, 180, 216, 0.12);
 }
 
 .answer-highlights-header {
@@ -331,14 +334,14 @@
   gap: 0.45rem;
   font-size: 0.775rem;
   font-weight: 700;
-  color: var(--color-primary-dark);
+  color: var(--ocean-primary-bg);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   margin-bottom: 0.5rem;
 }
 
 .answer-highlights-header svg {
-  color: var(--color-accent);
+  color: var(--ocean-cta);
 }
 
 .answer-highlights-grid {
@@ -357,7 +360,7 @@
 }
 
 .highlight-bullet {
-  color: var(--color-primary);
+  color: var(--ocean-brand);
   font-weight: 800;
 }
 
@@ -571,27 +574,31 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background-color: var(--ocean-card-bg);
+  border: 1px solid var(--ocean-highlight);
   border-radius: var(--radius-full);
   padding: 0.35rem 0.75rem;
   font-size: 0.8rem;
-  font-weight: 500;
-  color: var(--color-primary-dark);
+  font-weight: 600;
+  color: var(--ocean-primary-bg);
   cursor: pointer;
   transition: all var(--transition-fast);
 }
 
 .followup-query-btn:hover {
-  background-color: #ffffff;
-  border-color: var(--color-primary-light);
-  color: var(--color-primary);
-  box-shadow: var(--shadow-sm);
+  background-color: var(--ocean-brand);
+  border-color: var(--ocean-brand);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(2, 62, 186, 0.25);
   transform: translateY(-1px);
 }
 
 .followup-query-btn svg {
-  color: var(--color-primary-light);
+  color: var(--ocean-brand);
+}
+
+.followup-query-btn:hover svg {
+  color: #ffffff;
 }
 
 /* 5. Answer Footer & Feedback */
@@ -901,17 +908,17 @@
   display: flex;
   align-items: flex-end;
   gap: 0.625rem;
-  background-color: #f8fafc;
-  border: 1px solid var(--color-border);
+  background-color: var(--color-bg);
+  border: 1.5px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: 0.5rem 0.75rem;
   transition: all var(--transition-fast);
 }
 
 .chat-input-form:focus-within {
-  border-color: var(--color-primary-light);
+  border-color: var(--ocean-highlight);
   background-color: var(--color-surface);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 3px rgba(0, 180, 216, 0.25);
 }
 
 .chat-textarea {
@@ -933,9 +940,9 @@
 }
 
 .chat-send-btn {
-  background-color: var(--color-primary);
-  color: white;
-  border: none;
+  background-color: var(--color-cta) !important;
+  color: var(--color-cta-text) !important;
+  border: 1px solid #f59e0b;
   border-radius: var(--radius-md);
   width: 36px;
   height: 36px;
@@ -945,16 +952,23 @@
   cursor: pointer;
   transition: all var(--transition-fast);
   flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(251, 176, 45, 0.3);
 }
 
 .chat-send-btn:hover {
-  background-color: var(--color-primary-dark);
+  background-color: var(--color-cta-hover) !important;
+  color: var(--color-cta-text) !important;
+  box-shadow: 0 4px 10px rgba(251, 176, 45, 0.45);
+  transform: translateY(-1px);
 }
 
 .chat-send-btn:disabled {
-  background-color: var(--color-border);
+  background-color: var(--color-border) !important;
+  border-color: transparent !important;
   cursor: not-allowed;
-  color: var(--color-text-light);
+  color: var(--color-text-light) !important;
+  box-shadow: none !important;
+  transform: none !important;
 }
 
 .chat-send-btn svg {

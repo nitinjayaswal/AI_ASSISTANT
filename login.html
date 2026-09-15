@@ -9,6 +9,7 @@
     <meta property="og:description" content="Administrative login to manage college documents and knowledge base." />
     <link rel="stylesheet" href="/css/style.css" />
     <link rel="stylesheet" href="/css/admin.css" />
+    <link rel="stylesheet" href="/css/student-auth.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -61,7 +62,7 @@
                 id="loginEmail" 
                 class="form-input" 
                 placeholder="admin@college.edu" 
-                value="admin@college.edu" 
+                autocomplete="username"
                 required 
               />
             </div>
@@ -72,40 +73,56 @@
                 type="password" 
                 id="loginPassword" 
                 class="form-input" 
-                placeholder="••••••••" 
-                value="Uiet@123" 
+                placeholder="Enter password" 
+                autocomplete="current-password"
                 required 
               />
             </div>
 
-            <button type="submit" class="btn btn-primary" id="loginSubmitBtn" style="width: 100%; margin-top: 0.5rem;">
+            <button type="submit" class="btn btn-cta" id="loginSubmitBtn" style="width: 100%; margin-top: 0.5rem; font-weight: 700;">
               Sign In to Dashboard
             </button>
           </form>
 
-          <div class="login-divider">
-            <span>Quick Preview Access</span>
-          </div>
-
-          <button type="button" class="btn btn-outline" id="demoLoginBtn" style="width: 100%;">
-            ⚡ Sign In as Demo Administrator
-          </button>
-
-          <div class="demo-credentials-box">
-            <strong>Admin Credentials:</strong>
-            Email: <code>admin@college.edu</code><br />
-            Password: <code>Uiet@123</code>
+          <!-- Student Login Portal Link -->
+          <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid #e2e8f0; text-align: center;">
+            <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 0.75rem;">Are you a Panjab University / UIET student?</p>
+            <button type="button" class="btn btn-outline" id="studentLoginTriggerBtn" style="width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; font-weight: 600; border-color: var(--ocean-highlight, #00B4D8); color: var(--ocean-brand, #023EBA);">
+              <svg viewBox="0 0 24 24" width="16" height="16">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+              </svg>
+              <span>Sign in with Student Gmail</span>
+            </button>
           </div>
         </div>
       </main>
     </div>
 
     <!-- Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
     <script src="/js/firebase-config.js"></script>
+    <script src="/js/student-auth.js"></script>
     <script src="/js/auth.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
+        // Redirect if student authenticates
+        window.addEventListener("student-auth-changed", (e) => {
+          if (e.detail && e.detail.email) {
+            window.location.href = "index.html";
+          }
+        });
+
         // Redirect if already authenticated
+        if (window.StudentAuth && window.StudentAuth.isAuthenticated()) {
+          window.location.href = "index.html";
+          return;
+        }
+
         if (window.CollegeAuth) {
           window.CollegeAuth.redirectIfAuthenticated();
         }
@@ -114,7 +131,6 @@
         const loginEmail = document.getElementById("loginEmail");
         const loginPassword = document.getElementById("loginPassword");
         const loginError = document.getElementById("loginError");
-        const demoLoginBtn = document.getElementById("demoLoginBtn");
 
         if (loginForm) {
           loginForm.addEventListener("submit", async (e) => {
@@ -129,14 +145,13 @@
           });
         }
 
-        if (demoLoginBtn) {
-          demoLoginBtn.addEventListener("click", async () => {
-            hideError();
-            try {
-              await window.CollegeAuth.login("admin@college.edu", "admin123");
-              window.location.href = "admin.html";
-            } catch (err) {
-              showError(err.message);
+        const studentTrigger = document.getElementById("studentLoginTriggerBtn");
+        if (studentTrigger) {
+          studentTrigger.addEventListener("click", () => {
+            if (window.StudentAuth) {
+              window.StudentAuth.openModal();
+            } else {
+              window.location.href = "index.html";
             }
           });
         }

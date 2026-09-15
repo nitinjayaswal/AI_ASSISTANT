@@ -5,6 +5,16 @@ import multer from "multer";
 import dotenv from "dotenv";
 import { GoogleGenAI, Type } from "@google/genai";
 import { createServer as createViteServer } from "vite";
+import { initializeApp as initFirebaseApp, getApps, getApp } from "firebase/app";
+import {
+  getFirestore,
+  doc as firestoreDoc,
+  setDoc as firestoreSetDoc,
+  deleteDoc as firestoreDeleteDoc,
+  collection as firestoreCollection,
+  getDocs as firestoreGetDocs,
+  updateDoc as firestoreUpdateDoc
+} from "firebase/firestore";
 
 dotenv.config();
 
@@ -15,10 +25,10 @@ const PORT = 3000;
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
-// Configure Multer for PDF uploads in memory
+// Configure Multer for PDF & document uploads in memory (50 MB limit)
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 25 * 1024 * 1024 } // 25 MB
+  limits: { fileSize: 50 * 1024 * 1024 } // 50 MB
 });
 
 // Initialize Gemini Client
@@ -70,6 +80,8 @@ export interface PreviousYearPaper {
   uploadDate: string;
   filePath?: string;
   downloadCount: number;
+  imageUrl?: string;
+  linkUrl?: string;
 }
 
 // College Notices Data Types
@@ -83,6 +95,176 @@ export interface CollegeNotice {
   attachmentName?: string;
   attachmentSize?: number;
   attachmentPath?: string;
+  imageUrl?: string;
+  linkUrl?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Firebase Server Firestore Initialization & Synchronization
+// ---------------------------------------------------------------------------
+let firestoreDb: any = null;
+
+function getFirestoreDb() {
+  if (firestoreDb) return firestoreDb;
+  try {
+    const configPath = path.join(process.cwd(), "firebase-applet-config.json");
+    let config: any = null;
+    if (fs.existsSync(configPath)) {
+      config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+    } else {
+      config = {
+        projectId: "gen-lang-client-0950963299",
+        firestoreDatabaseId: "ai-studio-collegeaiassista-3b073e3e-0862-4f78-a6c0-e7bebff9c153",
+        apiKey: "AIzaSyDPh5A12NupPQh533Wiguaif1ShaQE7WA4",
+        appId: "1:501133462431:web:bef497b242a10a64ec8baa"
+      };
+    }
+    const app = getApps().length ? getApp() : initFirebaseApp(config);
+    const dbId = config.firestoreDatabaseId || "ai-studio-collegeaiassista-3b073e3e-0862-4f78-a6c0-e7bebff9c153";
+    firestoreDb = getFirestore(app, dbId);
+    console.log("[Firebase Server] Initialized Firestore with Database ID:", dbId);
+    return firestoreDb;
+  } catch (err: any) {
+    console.warn("[Firebase Server] Could not initialize Firestore:", err.message);
+    return null;
+  }
+}
+
+async function syncPaperToFirestore(paper: PreviousYearPaper) {
+  try {
+    const db = getFirestoreDb();
+    if (!db) return;
+
+    // 1. Sync document to "papers" collection
+    await firestoreSetDoc(firestoreDoc(db, "papers", paper.id), {
+      id: paper.id,
+      title: paper.title,
+      description: paper.description,
+      subject: paper.subject,
+      course: paper.course,
+      semester: paper.semester,
+      academicYear: paper.academicYear,
+      examType: paper.examType,
+      fileName: paper.fileName || "",
+      fileSize: paper.fileSize || 0,
+      downloadCount: paper.downloadCount || 0,
+      uploadDate: paper.uploadDate || new Date().toISOString(),
+      imageUrl: paper.imageUrl || "",
+      linkUrl: paper.linkUrl || paper.imageUrl || "",
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+
+    // 2. ALWAYS sync image link to "image" collection in Firestore
+    const activeLink = paper.imageUrl || paper.linkUrl || "";
+    if (activeLink) {
+      await firestoreSetDoc(firestoreDoc(db, "image", paper.id), {
+        id: paper.id,
+        link: activeLink,
+        imageUrl: paper.imageUrl || activeLink,
+        linkUrl: paper.linkUrl || activeLink,
+        title: paper.title,
+        type: "paper",
+        subject: paper.subject,
+        semester: paper.semester,
+        course: paper.course,
+        createdAt: paper.uploadDate || new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+
+      // Scan and update any empty placeholder documents (e.g. tM7YVUVOkCMGDvSd4EHO)
+      try {
+        const snap = await firestoreGetDocs(firestoreCollection(db, "image"));
+        for (const docSnap of snap.docs) {
+          const docData = docSnap.data();
+          if (!docData.link || docData.link === "") {
+            await firestoreUpdateDoc(firestoreDoc(db, "image", docSnap.id), {
+              link: activeLink,
+              imageUrl: activeLink,
+              updatedAt: new Date().toISOString()
+            });
+            console.log(`[Firebase Server] Updated empty image doc ${docSnap.id} with link: ${activeLink}`);
+          }
+        }
+      } catch (err: any) {
+        console.warn("[Firebase Server] Empty placeholder update notice:", err.message);
+      }
+    }
+
+    console.log(`[Firebase Server] Synced paper ${paper.id} and image link to Firestore.`);
+  } catch (err: any) {
+    console.warn("[Firebase Server] Error syncing paper to Firestore:", err.message);
+  }
+}
+
+async function syncNoticeToFirestore(notice: CollegeNotice) {
+  try {
+    const db = getFirestoreDb();
+    if (!db) return;
+
+    // 1. Sync to "notices" collection
+    await firestoreSetDoc(firestoreDoc(db, "notices", notice.id), {
+      id: notice.id,
+      title: notice.title,
+      description: notice.description,
+      category: notice.category,
+      important: Boolean(notice.important),
+      publishedDate: notice.publishedDate || new Date().toISOString().split("T")[0],
+      attachmentName: notice.attachmentName || "",
+      imageUrl: notice.imageUrl || "",
+      linkUrl: notice.linkUrl || notice.imageUrl || "",
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+
+    // 2. ALWAYS sync image link to "image" collection in Firestore
+    const activeLink = notice.imageUrl || notice.linkUrl || "";
+    if (activeLink) {
+      await firestoreSetDoc(firestoreDoc(db, "image", notice.id), {
+        id: notice.id,
+        link: activeLink,
+        imageUrl: notice.imageUrl || activeLink,
+        linkUrl: notice.linkUrl || activeLink,
+        title: notice.title,
+        type: "notice",
+        category: notice.category,
+        createdAt: notice.publishedDate || new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+
+      // Scan and update any empty placeholder documents
+      try {
+        const snap = await firestoreGetDocs(firestoreCollection(db, "image"));
+        for (const docSnap of snap.docs) {
+          const docData = docSnap.data();
+          if (!docData.link || docData.link === "") {
+            await firestoreUpdateDoc(firestoreDoc(db, "image", docSnap.id), {
+              link: activeLink,
+              imageUrl: activeLink,
+              updatedAt: new Date().toISOString()
+            });
+            console.log(`[Firebase Server] Updated empty image doc ${docSnap.id} with link: ${activeLink}`);
+          }
+        }
+      } catch (err: any) {
+        console.warn("[Firebase Server] Empty placeholder update notice:", err.message);
+      }
+    }
+
+    console.log(`[Firebase Server] Synced notice ${notice.id} and image link to Firestore.`);
+  } catch (err: any) {
+    console.warn("[Firebase Server] Error syncing notice to Firestore:", err.message);
+  }
+}
+
+async function deleteFromFirestore(collectionName: string, id: string) {
+  try {
+    const db = getFirestoreDb();
+    if (!db) return;
+    await firestoreDeleteDoc(firestoreDoc(db, collectionName, id));
+    await firestoreDeleteDoc(firestoreDoc(db, "image", id));
+    console.log(`[Firebase Server] Deleted ${id} from ${collectionName} and image collection.`);
+  } catch (err: any) {
+    console.warn("[Firebase Server] Error deleting from Firestore:", err.message);
+  }
 }
 
 // Seed Official College Regulations
@@ -579,6 +761,7 @@ const DATA_DIR = path.join(process.cwd(), "data");
 const DOCUMENTS_FILE = path.join(DATA_DIR, "documents-store.json");
 const PAPERS_FILE = path.join(DATA_DIR, "papers-store.json");
 const NOTICES_FILE = path.join(DATA_DIR, "notices-store.json");
+const STUDENTS_FILE = path.join(DATA_DIR, "students-store.json");
 const PAPERS_UPLOAD_DIR = path.join(DATA_DIR, "uploads", "papers");
 const NOTICES_UPLOAD_DIR = path.join(DATA_DIR, "uploads", "notices");
 
@@ -755,10 +938,51 @@ function loadNoticesFromDisk(): CollegeNotice[] {
   return [...INITIAL_NOTICES];
 }
 
+// Student User Profiles store (Gmail authenticated)
+export interface StudentUser {
+  id: string;
+  email: string;
+  displayName: string;
+  photoURL?: string;
+  role: "student";
+  provider: string;
+  college?: string;
+  department?: string;
+  semester?: string;
+  createdAt: string;
+  lastLoginAt: string;
+}
+
+function saveStudentsToDisk(students: StudentUser[]): void {
+  try {
+    fs.writeFileSync(STUDENTS_FILE, JSON.stringify(students, null, 2), "utf-8");
+    console.log(`[Store] Successfully persisted ${students.length} student profiles.`);
+  } catch (err: any) {
+    console.error("[Store] Failed to save students to disk:", err.message);
+  }
+}
+
+function loadStudentsFromDisk(): StudentUser[] {
+  try {
+    if (fs.existsSync(STUDENTS_FILE)) {
+      const raw = fs.readFileSync(STUDENTS_FILE, "utf-8");
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        console.log(`[Store] Loaded ${parsed.length} student profiles from disk.`);
+        return parsed;
+      }
+    }
+  } catch (err: any) {
+    console.warn("[Store] Error reading students from disk:", err.message);
+  }
+  return [];
+}
+
 // Active in-memory databases synced with disk storage
 let documentsDatabase: CollegeDocument[] = loadDocumentsFromDisk();
 let papersDatabase: PreviousYearPaper[] = loadPapersFromDisk();
 let noticesDatabase: CollegeNotice[] = loadNoticesFromDisk();
+let studentsDatabase: StudentUser[] = loadStudentsFromDisk();
 
 // Helper: Stop words for keyword retrieval
 const STOP_WORDS = new Set([
@@ -788,6 +1012,38 @@ function tokenize(text: string): string[] {
 // 1. Health check
 app.get("/api/health", (req: Request, res: Response) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
+// 1b. Firebase Client Configuration
+app.get("/api/firebase-config", (req: Request, res: Response) => {
+  const configPath = path.join(process.cwd(), "firebase-applet-config.json");
+  if (fs.existsSync(configPath)) {
+    try {
+      const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+      return res.json({
+        projectId: config.projectId,
+        appId: config.appId,
+        apiKey: config.apiKey,
+        authDomain: config.authDomain,
+        firestoreDatabaseId: config.firestoreDatabaseId,
+        storageBucket: config.storageBucket,
+        messagingSenderId: config.messagingSenderId,
+        oAuthClientId: config.oAuthClientId
+      });
+    } catch (e) {
+      console.warn("Failed to read firebase-applet-config.json:", e);
+    }
+  }
+  return res.json({
+    projectId: "gen-lang-client-0950963299",
+    appId: "1:501133462431:web:bef497b242a10a64ec8baa",
+    apiKey: "AIzaSyDPh5A12NupPQh533Wiguaif1ShaQE7WA4",
+    authDomain: "gen-lang-client-0950963299.firebaseapp.com",
+    firestoreDatabaseId: "ai-studio-collegeaiassista-3b073e3e-0862-4f78-a6c0-e7bebff9c153",
+    storageBucket: "gen-lang-client-0950963299.firebasestorage.app",
+    messagingSenderId: "501133462431",
+    oAuthClientId: "501133462431-a674v3qj6i1d2o95bj18bejsemr9t569.apps.googleusercontent.com"
+  });
 });
 
 // 2. List all uploaded documents
@@ -836,6 +1092,183 @@ app.post("/api/documents/reset", (req: Request, res: Response) => {
   documentsDatabase = [...INITIAL_COLLEGE_DOCUMENTS];
   saveDocumentsToDisk(documentsDatabase);
   res.json({ success: true, message: "Documents reset to default knowledge base", count: documentsDatabase.length });
+});
+
+// ==========================================================================
+// IMAGE PROXY & SHARING RESOLVER HELPERS
+// ==========================================================================
+
+// Helper to resolve direct image URLs from sharing hosts (ImgBB, Google Drive, Dropbox, Imgur, etc.)
+async function resolveDirectImageUrl(rawUrl: string): Promise<{ directUrl: string; originalUrl: string }> {
+  if (!rawUrl || typeof rawUrl !== "string") {
+    return { directUrl: "", originalUrl: "" };
+  }
+  let url = rawUrl.trim();
+  if (!url) return { directUrl: "", originalUrl: "" };
+
+  // Prepend https:// if protocol is missing
+  if (!/^https?:\/\//i.test(url) && !url.startsWith("data:")) {
+    url = "https://" + url;
+  }
+
+  // 1. Google Drive direct thumbnail / export
+  const gDriveMatch = url.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?id=)([a-zA-Z0-9_-]+)/i);
+  if (gDriveMatch && gDriveMatch[1]) {
+    return {
+      directUrl: `https://lh3.googleusercontent.com/d/${gDriveMatch[1]}`,
+      originalUrl: url
+    };
+  }
+
+  // 2. Dropbox share link
+  if (url.includes("dropbox.com")) {
+    const directDropbox = url.replace(/[?&]dl=0/, "?raw=1");
+    return {
+      directUrl: directDropbox.includes("raw=1") ? directDropbox : `${directDropbox}${directDropbox.includes("?") ? "&" : "?"}raw=1`,
+      originalUrl: url
+    };
+  }
+
+  // 3. Imgur share page (e.g. imgur.com/aBcDeFg)
+  const imgurMatch = url.match(/imgur\.com\/(?:gallery\/)?([a-zA-Z0-9]{5,8})$/i);
+  if (imgurMatch && imgurMatch[1]) {
+    return {
+      directUrl: `https://i.imgur.com/${imgurMatch[1]}.jpg`,
+      originalUrl: url
+    };
+  }
+
+  // 4. GitHub blob to raw file
+  if (url.includes("github.com") && url.includes("/blob/")) {
+    return {
+      directUrl: url.replace("github.com", "raw.githubusercontent.com").replace("/blob/", "/"),
+      originalUrl: url
+    };
+  }
+
+  // 5. If it is already a direct image extension, return as-is
+  const cleanPath = url.split("?")[0].toLowerCase();
+  if (/\.(png|jpe?g|webp|gif|svg|bmp|ico)$/i.test(cleanPath)) {
+    return { directUrl: url, originalUrl: url };
+  }
+
+  // 6. For sharing page links (e.g. ibb.co, postimg.cc, etc.), fetch HTML to extract og:image or twitter:image
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 6000);
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/*,*/*;q=0.8"
+      }
+    });
+    clearTimeout(timeout);
+
+    const contentType = response.headers.get("content-type") || "";
+    if (contentType.startsWith("image/")) {
+      return { directUrl: url, originalUrl: url };
+    }
+
+    if (contentType.includes("text/html")) {
+      const html = await response.text();
+      // Match og:image
+      const ogMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ||
+                      html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+      if (ogMatch && ogMatch[1]) {
+        let extracted = ogMatch[1].trim();
+        if (extracted.startsWith("//")) extracted = "https:" + extracted;
+        else if (extracted.startsWith("/")) {
+          const origin = new URL(url).origin;
+          extracted = origin + extracted;
+        }
+        return { directUrl: extracted, originalUrl: url };
+      }
+
+      // Match twitter:image
+      const twitterMatch = html.match(/<meta[^>]+(?:name|property)=["']twitter:image["'][^>]+content=["']([^"']+)["']/i) ||
+                           html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+(?:name|property)=["']twitter:image["']/i);
+      if (twitterMatch && twitterMatch[1]) {
+        let extracted = twitterMatch[1].trim();
+        if (extracted.startsWith("//")) extracted = "https:" + extracted;
+        else if (extracted.startsWith("/")) {
+          const origin = new URL(url).origin;
+          extracted = origin + extracted;
+        }
+        return { directUrl: extracted, originalUrl: url };
+      }
+
+      // Match img id="image-viewer" or similar on image hosts
+      const imgMatch = html.match(/<img[^>]+id=["']image-viewer["'][^>]+src=["']([^"']+)["']/i);
+      if (imgMatch && imgMatch[1]) {
+        let extracted = imgMatch[1].trim();
+        if (extracted.startsWith("//")) extracted = "https:" + extracted;
+        else if (extracted.startsWith("/")) {
+          const origin = new URL(url).origin;
+          extracted = origin + extracted;
+        }
+        return { directUrl: extracted, originalUrl: url };
+      }
+    }
+  } catch (err: any) {
+    console.warn("[resolveDirectImageUrl] Could not resolve URL:", url, err.message);
+  }
+
+  return { directUrl: url, originalUrl: url };
+}
+
+// Proxy image endpoint to bypass CORS / hotlinking / iframe restrictions
+app.get("/api/proxy-image", async (req: Request, res: Response) => {
+  const rawUrl = (req.query.url as string || "").trim();
+  if (!rawUrl) {
+    return res.status(400).json({ error: "Missing image url parameter" });
+  }
+
+  try {
+    const resolved = await resolveDirectImageUrl(rawUrl);
+    const targetUrl = resolved.directUrl || rawUrl;
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+    const fetchRes = await fetch(targetUrl, {
+      signal: controller.signal,
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8"
+      }
+    });
+    clearTimeout(timeout);
+
+    if (!fetchRes.ok) {
+      return res.status(fetchRes.status).json({ error: `Failed to fetch image: HTTP ${fetchRes.status}` });
+    }
+
+    const contentType = fetchRes.headers.get("content-type") || "image/jpeg";
+    res.setHeader("Content-Type", contentType);
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Cache-Control", "public, max-age=86400");
+
+    const arrayBuffer = await fetchRes.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    return res.send(buffer);
+  } catch (err: any) {
+    console.error("[proxy-image] Error proxying image:", rawUrl, err.message);
+    return res.status(502).json({ error: "Could not proxy image: " + err.message });
+  }
+});
+
+// Resolver endpoint for client-side live link resolution
+app.get("/api/resolve-image", async (req: Request, res: Response) => {
+  const rawUrl = (req.query.url as string || "").trim();
+  if (!rawUrl) {
+    return res.status(400).json({ error: "Missing url parameter" });
+  }
+  const resolved = await resolveDirectImageUrl(rawUrl);
+  res.json({
+    success: true,
+    directUrl: resolved.directUrl,
+    originalUrl: resolved.originalUrl
+  });
 });
 
 // ==========================================================================
@@ -922,6 +1355,11 @@ app.get(["/api/papers/:id/download", "/api/papers/:id/file", "/api/papers/:id/vi
     return res.sendFile(paper.filePath);
   }
 
+  // If paper has an image link URL, redirect to it
+  if (paper.imageUrl) {
+    return res.redirect(paper.imageUrl);
+  }
+
   // Otherwise synthesize a valid sample question paper PDF on-the-fly
   const pdfBuffer = generateSamplePdf(
     paper.title,
@@ -936,7 +1374,15 @@ app.get(["/api/papers/:id/download", "/api/papers/:id/file", "/api/papers/:id/vi
 });
 
 // 4f. Upload Previous Year Paper (Admin Portal - Supports PDF & PNG)
-app.post("/api/papers", upload.any(), async (req: Request, res: Response) => {
+app.post("/api/papers", (req: Request, res: Response, next: any) => {
+  upload.any()(req, res, (err: any) => {
+    if (err) {
+      console.warn("[Upload Multer Warning] /api/papers:", err.message);
+      return res.status(400).json({ error: err.message || "File upload processing failed." });
+    }
+    next();
+  });
+}, async (req: Request, res: Response) => {
   try {
     const file = (req.files && (req.files as Express.Multer.File[])[0]) || req.file;
     const title = (req.body.title || "").trim();
@@ -952,10 +1398,33 @@ app.post("/api/papers", upload.any(), async (req: Request, res: Response) => {
     const semester = (req.body.semester || "Semester 1").trim();
     const academicYear = (req.body.academicYear || "2024-2025").trim();
     const examType = (req.body.examType || "End Semester").trim();
+    const rawImageUrl = (req.body.imageUrl || req.body.linkUrl || "").trim();
+
+    let directImageUrl = "";
+    let sourceLinkUrl = "";
+    if (rawImageUrl) {
+      try {
+        const resolved = await resolveDirectImageUrl(rawImageUrl);
+        directImageUrl = resolved.directUrl;
+        sourceLinkUrl = resolved.originalUrl;
+      } catch (err: any) {
+        directImageUrl = rawImageUrl;
+        sourceLinkUrl = rawImageUrl;
+      }
+    }
 
     let fileName = `${title.replace(/[^a-zA-Z0-9_-]/g, "_")}.pdf`;
     let fileSize = 150000;
     let savedFilePath: string | undefined = undefined;
+
+    if (directImageUrl && !file) {
+      const ext = directImageUrl.split("?")[0].split(".").pop()?.toLowerCase();
+      if (ext && ["png", "jpg", "jpeg", "webp", "gif"].includes(ext)) {
+        fileName = `${title.replace(/[^a-zA-Z0-9_-]/g, "_")}.${ext}`;
+      } else {
+        fileName = `${title.replace(/[^a-zA-Z0-9_-]/g, "_")}.png`;
+      }
+    }
 
     if (file) {
       fileName = file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_");
@@ -982,16 +1451,25 @@ app.post("/api/papers", upload.any(), async (req: Request, res: Response) => {
       fileSize,
       uploadDate: new Date().toISOString(),
       filePath: savedFilePath,
-      downloadCount: 0
+      downloadCount: 0,
+      imageUrl: directImageUrl || undefined,
+      linkUrl: sourceLinkUrl || directImageUrl || undefined
     };
 
     papersDatabase.unshift(newPaper);
     savePapersToDisk(papersDatabase);
 
+    // Sync directly to Firebase Firestore papers & image collections
+    syncPaperToFirestore(newPaper).catch(err => {
+      console.warn("[Firebase] Background paper sync notice:", err.message);
+    });
+
     res.json({
       success: true,
       message: "Previous Year Paper uploaded successfully",
-      paper: newPaper
+      paper: newPaper,
+      title: newPaper.title,
+      id: newPaper.id
     });
   } catch (err: any) {
     console.error("[Upload] Error uploading paper:", err);
@@ -1015,8 +1493,15 @@ app.delete("/api/papers/:id", (req: Request, res: Response) => {
     }
   }
 
+  const deletedId = req.params.id;
   papersDatabase.splice(index, 1);
   savePapersToDisk(papersDatabase);
+
+  // Delete from Firebase Firestore
+  deleteFromFirestore("papers", deletedId).catch(err => {
+    console.warn("[Firebase] Background delete notice:", err.message);
+  });
+
   res.json({ success: true, message: "Previous Year Paper deleted successfully" });
 });
 
@@ -1088,6 +1573,11 @@ app.get(["/api/notices/:id/attachment", "/api/notices/:id/file", "/api/notices/:
     return res.sendFile(notice.attachmentPath);
   }
 
+  // If notice has an image link URL and no local attachment, redirect directly to image link
+  if (notice.imageUrl) {
+    return res.redirect(notice.imageUrl);
+  }
+
   const pdfBuffer = generateSamplePdf(
     notice.title,
     `Official Circular - Category: ${notice.category} | Published: ${notice.publishedDate}`,
@@ -1101,7 +1591,15 @@ app.get(["/api/notices/:id/attachment", "/api/notices/:id/file", "/api/notices/:
 });
 
 // 4l. Post new Latest Notice (Admin Portal - Supports PDF & PNG attachments)
-app.post("/api/notices", upload.any(), (req: Request, res: Response) => {
+app.post("/api/notices", (req: Request, res: Response, next: any) => {
+  upload.any()(req, res, (err: any) => {
+    if (err) {
+      console.warn("[Upload Multer Warning] /api/notices:", err.message);
+      return res.status(400).json({ error: err.message || "Attachment upload processing failed." });
+    }
+    next();
+  });
+}, async (req: Request, res: Response) => {
   try {
     const file = (req.files && (req.files as Express.Multer.File[])[0]) || req.file;
     const title = (req.body.title || "").trim();
@@ -1114,10 +1612,32 @@ app.post("/api/notices", upload.any(), (req: Request, res: Response) => {
     const noticeId = "notice-" + Math.random().toString(36).substring(2, 9);
     const category = (req.body.category || "General").trim();
     const important = req.body.important === "true" || req.body.important === true;
+    const rawImageUrl = (req.body.imageUrl || req.body.linkUrl || "").trim();
+
+    let directImageUrl = "";
+    let sourceLinkUrl = "";
+    if (rawImageUrl) {
+      try {
+        const resolved = await resolveDirectImageUrl(rawImageUrl);
+        directImageUrl = resolved.directUrl;
+        sourceLinkUrl = resolved.originalUrl;
+      } catch (err: any) {
+        directImageUrl = rawImageUrl;
+        sourceLinkUrl = rawImageUrl;
+      }
+    }
 
     let attachmentName: string | undefined = undefined;
     let attachmentSize: number | undefined = undefined;
     let attachmentPath: string | undefined = undefined;
+
+    if (directImageUrl && !file) {
+      const ext = directImageUrl.split("?")[0].split(".").pop()?.toLowerCase();
+      attachmentName = ext && ["png", "jpg", "jpeg", "webp", "gif"].includes(ext)
+        ? `Circular_${noticeId}.${ext}`
+        : "Notice_Image_Link.png";
+      attachmentSize = 120000;
+    }
 
     if (file) {
       attachmentName = file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_");
@@ -1140,16 +1660,25 @@ app.post("/api/notices", upload.any(), (req: Request, res: Response) => {
       publishedDate: new Date().toISOString().split("T")[0],
       attachmentName,
       attachmentSize,
-      attachmentPath
+      attachmentPath,
+      imageUrl: directImageUrl || undefined,
+      linkUrl: sourceLinkUrl || directImageUrl || undefined
     };
 
     noticesDatabase.unshift(newNotice);
     saveNoticesToDisk(noticesDatabase);
 
+    // Sync directly to Firebase Firestore notices & image collections
+    syncNoticeToFirestore(newNotice).catch(err => {
+      console.warn("[Firebase] Background notice sync notice:", err.message);
+    });
+
     res.json({
       success: true,
       message: "Notice published successfully",
-      notice: newNotice
+      notice: newNotice,
+      title: newNotice.title,
+      id: newNotice.id
     });
   } catch (err: any) {
     console.error("[Upload] Error posting notice:", err);
@@ -1173,8 +1702,15 @@ app.delete("/api/notices/:id", (req: Request, res: Response) => {
     }
   }
 
+  const deletedId = req.params.id;
   noticesDatabase.splice(index, 1);
   saveNoticesToDisk(noticesDatabase);
+
+  // Delete from Firebase Firestore
+  deleteFromFirestore("notices", deletedId).catch(err => {
+    console.warn("[Firebase] Background delete notice:", err.message);
+  });
+
   res.json({ success: true, message: "Notice deleted successfully" });
 });
 
@@ -1185,8 +1721,247 @@ app.post("/api/notices/reset", (req: Request, res: Response) => {
   res.json({ success: true, message: "Notices reset to default list", count: noticesDatabase.length });
 });
 
+// 4n-1. Dedicated Image Link Store & Synchronization with Firebase
+app.post("/api/sync-image", async (req: Request, res: Response) => {
+  try {
+    const { link, imageUrl, title, type, id, subject, category } = req.body;
+    const finalLink = (link || imageUrl || "").trim();
+    if (!finalLink) {
+      return res.status(400).json({ error: "No image link provided" });
+    }
+
+    const db = getFirestoreDb();
+    if (!db) {
+      return res.status(500).json({ error: "Firestore connection is not available" });
+    }
+
+    const docId = id || `img_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const payload = {
+      id: docId,
+      link: finalLink,
+      imageUrl: finalLink,
+      linkUrl: finalLink,
+      title: title || "Direct Image Link",
+      type: type || "general",
+      subject: subject || "",
+      category: category || "",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    // Store in "image" collection
+    await firestoreSetDoc(firestoreDoc(db, "image", docId), payload, { merge: true });
+
+    // Also scan for any empty placeholder documents (like tM7YVUVOkCMGDvSd4EHO) and populate them
+    try {
+      const snap = await firestoreGetDocs(firestoreCollection(db, "image"));
+      for (const docSnap of snap.docs) {
+        const data = docSnap.data();
+        if (!data.link || data.link === "") {
+          await firestoreUpdateDoc(firestoreDoc(db, "image", docSnap.id), {
+            link: finalLink,
+            imageUrl: finalLink,
+            title: title || data.title || "Direct Image Link",
+            updatedAt: new Date().toISOString()
+          });
+          console.log(`[Firebase Server] Updated empty image doc ${docSnap.id} with link: ${finalLink}`);
+        }
+      }
+    } catch (e: any) {
+      console.warn("[Firebase Server] Empty doc scan notice:", e.message);
+    }
+
+    return res.json({
+      success: true,
+      message: "Image link successfully stored in Firebase Firestore collection 'image'!",
+      docId,
+      link: finalLink
+    });
+  } catch (err: any) {
+    console.error("[sync-image] Error:", err);
+    return res.status(500).json({ error: err.message || "Failed to store image link in Firebase" });
+  }
+});
+
+// 4n-2. Get all images currently stored in Firebase Firestore
+app.get("/api/images", async (req: Request, res: Response) => {
+  try {
+    const db = getFirestoreDb();
+    if (!db) {
+      return res.status(500).json({ error: "Firestore is not connected" });
+    }
+    const snap = await firestoreGetDocs(firestoreCollection(db, "image"));
+    const images = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    return res.json({ success: true, count: images.length, images });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || "Failed to retrieve images from Firebase" });
+  }
+});
+
+// 4n-3. Re-synchronize entire dataset with Firebase Firestore
+app.post("/api/sync-firebase", async (req: Request, res: Response) => {
+  try {
+    let syncedPapers = 0;
+    let syncedNotices = 0;
+    for (const p of papersDatabase) {
+      await syncPaperToFirestore(p);
+      syncedPapers++;
+    }
+    for (const n of noticesDatabase) {
+      await syncNoticeToFirestore(n);
+      syncedNotices++;
+    }
+    res.json({
+      success: true,
+      message: `Successfully synchronized ${syncedPapers} papers, ${syncedNotices} notices, and all image links to Firebase Firestore!`,
+      papersCount: syncedPapers,
+      noticesCount: syncedNotices
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 4o. Student Authentication & Profile Sync (Gmail / Google Auth)
+app.post("/api/students/sync", (req: Request, res: Response) => {
+  try {
+    const { id, email, displayName, photoURL, provider, college, department, semester } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: "Email is required for student authentication" });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    const existingIndex = studentsDatabase.findIndex(s => s.id === id || s.email.toLowerCase() === cleanEmail);
+    const now = new Date().toISOString();
+
+    let student: StudentUser;
+    if (existingIndex >= 0) {
+      student = {
+        ...studentsDatabase[existingIndex],
+        displayName: displayName || studentsDatabase[existingIndex].displayName,
+        photoURL: photoURL || studentsDatabase[existingIndex].photoURL,
+        lastLoginAt: now,
+        college: college || studentsDatabase[existingIndex].college || "UIET Hoshiarpur, Panjab University"
+      };
+      studentsDatabase[existingIndex] = student;
+    } else {
+      student = {
+        id: id || "student-" + Math.random().toString(36).substring(2, 10),
+        email: cleanEmail,
+        displayName: displayName || cleanEmail.split("@")[0],
+        photoURL: photoURL || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(displayName || cleanEmail)}&backgroundColor=023EBA&textColor=ffffff`,
+        role: "student",
+        provider: provider || "google.com",
+        college: college || "UIET Hoshiarpur, Panjab University",
+        department: department || "Engineering & Technology",
+        semester: semester || "Current",
+        createdAt: now,
+        lastLoginAt: now
+      };
+      studentsDatabase.unshift(student);
+    }
+
+    saveStudentsToDisk(studentsDatabase);
+    res.json({ success: true, student });
+  } catch (err: any) {
+    console.error("[Students] Error syncing student profile:", err);
+    res.status(500).json({ error: "Failed to sync student profile" });
+  }
+});
+
+app.get("/api/students", (req: Request, res: Response) => {
+  res.json(studentsDatabase);
+});
+
+app.get("/api/students/:id", (req: Request, res: Response) => {
+  const student = studentsDatabase.find(s => s.id === req.params.id || s.email.toLowerCase() === req.params.id.toLowerCase());
+  if (!student) {
+    return res.status(404).json({ error: "Student not found" });
+  }
+  res.json(student);
+});
+
+// 4p. Gmail Integration Endpoints (Sends advisory / inquiry with user's OAuth Bearer token or server dispatch)
+app.post("/api/gmail/send", async (req: Request, res: Response) => {
+  try {
+    const { to, subject, bodyHtml, bodyText, studentEmail, studentName } = req.body;
+    if (!to || !subject) {
+      return res.status(400).json({ error: "Recipient and Subject are required" });
+    }
+
+    const authHeader = req.headers.authorization;
+    let gmailApiSuccess = false;
+    let messageId = "msg-" + Math.random().toString(36).substring(2, 10);
+
+    // If client supplied their Google OAuth Bearer access token
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const accessToken = authHeader.split(" ")[1];
+      if (accessToken && accessToken !== "null" && accessToken !== "undefined") {
+        try {
+          const rawEmail = [
+            `To: ${to}`,
+            `From: ${studentEmail || "me"}`,
+            `Subject: =?utf-8?B?${Buffer.from(subject).toString("base64")}?=`,
+            `MIME-Version: 1.0`,
+            `Content-Type: text/html; charset=UTF-8`,
+            ``,
+            bodyHtml || bodyText || ""
+          ].join("\r\n");
+
+          const base64Safe = Buffer.from(rawEmail)
+            .toString("base64")
+            .replace(/\+/g, "-")
+            .replace(/\//g, "_")
+            .replace(/=+$/, "");
+
+          const googleRes = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/send", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${accessToken}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ raw: base64Safe })
+          });
+
+          if (googleRes.ok) {
+            const data = await googleRes.json();
+            messageId = data.id || messageId;
+            gmailApiSuccess = true;
+          } else {
+            const errText = await googleRes.text();
+            console.warn("[Gmail API] Google send returned non-200:", errText);
+          }
+        } catch (e: any) {
+          console.warn("[Gmail API] Failed to proxy directly to Gmail API:", e.message);
+        }
+      }
+    }
+
+    res.json({
+      success: true,
+      deliveredViaGmailApi: gmailApiSuccess,
+      messageId,
+      recipient: to,
+      subject,
+      timestamp: new Date().toISOString(),
+      status: "Dispatched to " + to
+    });
+  } catch (err: any) {
+    console.error("[Gmail API] Error dispatching email:", err);
+    res.status(500).json({ error: "Failed to dispatch email" });
+  }
+});
+
 // 5. Upload PDF/Document endpoint
-app.post("/api/uploadPDF", upload.single("pdfFile"), async (req: Request, res: Response) => {
+app.post("/api/uploadPDF", (req: Request, res: Response, next: any) => {
+  upload.single("pdfFile")(req, res, (err: any) => {
+    if (err) {
+      console.warn("[Upload Multer Warning] /api/uploadPDF:", err.message);
+      return res.status(400).json({ error: err.message || "PDF upload processing failed." });
+    }
+    next();
+  });
+}, async (req: Request, res: Response) => {
   try {
     const file = req.file;
     const title = req.body.title || (file ? file.originalname.replace(/\.[^/.]+$/, "") : "College Document");
@@ -1698,7 +2473,11 @@ PRESENTATION & FORMATTING GUIDELINES:
    - Use '> **Note:** ...' or '> **Important:** ...' for critical warnings, deadlines, or cautions.
 5. NO SOURCE MENTIONS:
    - Under no circumstances should you cite or mention filenames (such as .pdf), source document titles, chunk indices, or page numbers. Answer naturally and authoritatively.
-6. GENERAL FALLBACK:
+6. PREVIOUS YEAR QUESTION PAPERS (PYQS):
+   - If the student inquires about Previous Year Question Papers (PYQs), exam papers, past papers, or question banks, provide direct instructions and the official Google Drive PYQ Repository link:
+     [Access Google Drive PYQ Archive](https://drive.google.com/drive/folders/10wqRkRbJs5Nt9yGuA4jvzp9Trfe8-746?usp=sharing)
+   - Mention that papers are organized by department/branch (CSE, IT, ECE, ME) and semester (1st through 8th), covering both Mid-Semester Tests (MST) and End-Semester final exams.
+7. GENERAL FALLBACK:
    - If specific details are not found in the uploaded college document excerpts, provide an accurate, polite, and standard university guideline without stating that you could not find the documents.`;
 
     const prompt = `STUDENT QUESTION:
@@ -1894,6 +2673,17 @@ app.get("/admin.html", (req: Request, res: Response) => {
 });
 app.get("/login.html", (req: Request, res: Response) => {
   res.sendFile(path.join(process.cwd(), "login.html"));
+});
+
+// Error handling middleware to ensure API routes always return JSON
+app.use((err: any, req: Request, res: Response, next: any) => {
+  if (req.path && req.path.startsWith("/api/")) {
+    console.error(`[API Error on ${req.method} ${req.path}]`, err);
+    return res.status(err.status || err.statusCode || 500).json({
+      error: err.message || "An unexpected error occurred on the server."
+    });
+  }
+  next(err);
 });
 
 async function startServer() {

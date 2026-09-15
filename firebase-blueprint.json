@@ -1,0 +1,275 @@
+{
+  "entities": {
+    "Document": {
+      "title": "Document",
+      "description": "Official college handbooks, regulations, and ordinances stored in the knowledge base",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the document"
+        },
+        "name": {
+          "type": "string",
+          "description": "Document filename or title"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category such as Academic & Admissions, Examination, Hostel, etc."
+        },
+        "uploadDate": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO timestamp of when the document was uploaded"
+        },
+        "chunkCount": {
+          "type": "number",
+          "description": "Total number of semantic chunks extracted"
+        },
+        "fileSize": {
+          "type": "number",
+          "description": "File size in bytes"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["indexed", "processing", "error"],
+          "description": "Current processing status"
+        }
+      },
+      "required": ["id", "name", "category", "uploadDate"]
+    },
+    "Chunk": {
+      "title": "Chunk",
+      "description": "Semantic chunk of text extracted from college documents for AI grounding and retrieval",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the chunk"
+        },
+        "docId": {
+          "type": "string",
+          "description": "ID of parent document"
+        },
+        "docName": {
+          "type": "string",
+          "description": "Filename of parent document"
+        },
+        "pageNumber": {
+          "type": "number",
+          "description": "Page number where chunk originates"
+        },
+        "text": {
+          "type": "string",
+          "description": "Cleaned chunk text content"
+        },
+        "category": {
+          "type": "string",
+          "description": "Academic topic category"
+        }
+      },
+      "required": ["id", "docId", "text"]
+    },
+    "Paper": {
+      "title": "Paper",
+      "description": "Previous Year Question Paper (PYQ) for university exams",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the question paper"
+        },
+        "title": {
+          "type": "string",
+          "description": "Exam paper title (e.g., Data Structures & Algorithms)"
+        },
+        "subject": {
+          "type": "string",
+          "description": "Academic subject"
+        },
+        "course": {
+          "type": "string",
+          "description": "Degree course (e.g., B.Tech CSE, IT)"
+        },
+        "semester": {
+          "type": "string",
+          "description": "Academic semester (e.g., Semester 4)"
+        },
+        "academicYear": {
+          "type": "string",
+          "description": "Examination academic year"
+        },
+        "examType": {
+          "type": "string",
+          "description": "End Semester Exam, Mid Semester, etc."
+        },
+        "fileName": {
+          "type": "string",
+          "description": "Uploaded file name"
+        },
+        "fileSize": {
+          "type": "number",
+          "description": "File size in bytes"
+        },
+        "downloadCount": {
+          "type": "number",
+          "description": "Number of downloads by students"
+        },
+        "uploadDate": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO timestamp of upload"
+        }
+      },
+      "required": ["id", "title", "subject", "semester", "academicYear"]
+    },
+    "Notice": {
+      "title": "Notice",
+      "description": "Official campus announcement, circular, datesheet, or notice",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for notice"
+        },
+        "title": {
+          "type": "string",
+          "description": "Notice headline"
+        },
+        "category": {
+          "type": "string",
+          "description": "Examination, Academic, Hostel, Placement, etc."
+        },
+        "publishedDate": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Publish date"
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed text of the circular"
+        },
+        "isImportant": {
+          "type": "boolean",
+          "description": "Whether pinned as high priority"
+        },
+        "attachmentName": {
+          "type": "string",
+          "description": "Attached file name if any"
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "Hosted or direct image link URL for the circular"
+        }
+      },
+      "required": ["id", "title", "category", "publishedDate"]
+    },
+    "StudentUser": {
+      "title": "StudentUser",
+      "description": "Authenticated student profile registered via Gmail / Google authentication",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Firebase Auth user UID"
+        },
+        "email": {
+          "type": "string",
+          "description": "Student Gmail address"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Student display name"
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "Student Google profile picture URL"
+        },
+        "role": {
+          "type": "string",
+          "enum": ["student"],
+          "description": "User access role"
+        },
+        "provider": {
+          "type": "string",
+          "description": "Identity provider (google.com)"
+        },
+        "lastLoginAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of most recent login"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Account initial sign-in timestamp"
+        }
+      },
+      "required": ["id", "email", "role"]
+    },
+    "ImageRecord": {
+      "title": "ImageRecord",
+      "description": "Direct and hosted image links for question papers, notices, and documents",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Document or auto-generated ID"
+        },
+        "link": {
+          "type": "string",
+          "description": "Primary URL or web address of the image"
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "Direct image URL"
+        },
+        "title": {
+          "type": "string",
+          "description": "Associated document or notice title"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["paper", "notice", "document", "general"],
+          "description": "Context type of the image"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp"
+        }
+      },
+      "required": ["link"]
+    }
+  },
+  "firestore": {
+    "/students/{studentId}": {
+      "schema": "StudentUser",
+      "description": "Authenticated student user records and profiles"
+    },
+    "/documents/{documentId}": {
+      "schema": "Document",
+      "description": "Official college handbooks and guidance documents"
+    },
+    "/chunks/{chunkId}": {
+      "schema": "Chunk",
+      "description": "Indexed semantic chunks for AI search and grounding"
+    },
+    "/papers/{paperId}": {
+      "schema": "Paper",
+      "description": "Previous year question papers archive"
+    },
+    "/notices/{noticeId}": {
+      "schema": "Notice",
+      "description": "Official college circulars and student announcements"
+    },
+    "/image/{imageId}": {
+      "schema": "ImageRecord",
+      "description": "Collection storing image links"
+    },
+    "/images/{imageId}": {
+      "schema": "ImageRecord",
+      "description": "Plural collection storing image links"
+    }
+  }
+}

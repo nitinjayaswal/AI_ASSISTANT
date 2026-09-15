@@ -29,9 +29,16 @@
   "functions": {
     "source": "functions"
   },
-  "firestore": {
-    "rules": "firestore.rules"
-  },
+  "firestore": [
+    {
+      "database": "ai-studio-collegeaiassista-3b073e3e-0862-4f78-a6c0-e7bebff9c153",
+      "rules": "firestore.rules"
+    },
+    {
+      "database": "(default)",
+      "rules": "firestore.rules"
+    }
+  ],
   "storage": {
     "rules": "storage.rules"
   }

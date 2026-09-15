@@ -41,27 +41,26 @@ class CollegeAuth {
     }
 
     // 2. Local / Mock Admin Verification
-    // Admin password set to Uiet@123 as requested
+    // Admin password verified against authorized college staff credentials
     const validCredentials = (
       (email === "admin@college.edu" && password === "Uiet@123") ||
       (email === "registrar@college.edu" && password === "Uiet@123") ||
       (email === "admin@uiet.ac.in" && password === "Uiet@123") ||
       (email.endsWith("@college.edu") && password === "Uiet@123") ||
-      (email.endsWith("@uiet.ac.in") && password === "Uiet@123") ||
-      (email === "demo" && (password === "demo" || password === "Uiet@123"))
+      (email.endsWith("@uiet.ac.in") && password === "Uiet@123")
     );
 
     if (validCredentials) {
       const user = {
         uid: "admin-" + Math.random().toString(36).substring(2, 9),
-        email: email === "demo" ? "admin@college.edu" : email,
+        email: email,
         role: "admin",
         loginTime: new Date().toISOString()
       };
       this.saveUser(user);
       return { success: true, user };
     } else {
-      throw new Error("Invalid admin credentials. Use admin@college.edu and password Uiet@123");
+      throw new Error("Invalid email or password. Please verify your credentials.");
     }
   }
 

@@ -254,5 +254,37 @@
         "createdAt": "2026-01-14T00:00:00.000Z"
       }
     ]
+  },
+  {
+    "id": "doc-pyq-archive-drive",
+    "title": "Previous Year Question Papers (PYQs) & Examination Archives",
+    "name": "UIET_PYQ_Question_Papers_Archive.pdf",
+    "originalName": "UIET_Previous_Year_Question_Papers_Repository.pdf",
+    "category": "Examination & PYQs",
+    "chunksCount": 2,
+    "fileSize": 250000,
+    "uploadDate": "2026-02-01T00:00:00.000Z",
+    "chunks": [
+      {
+        "id": "chunk-pyq-1",
+        "documentId": "doc-pyq-archive-drive",
+        "documentName": "UIET_PYQ_Question_Papers_Archive.pdf",
+        "category": "Examination & PYQs",
+        "pageNumber": 1,
+        "chunkIndex": 0,
+        "text": "PANJAB UNIVERSITY UIET HOSHIARPUR - PREVIOUS YEAR QUESTION PAPERS (PYQS) CLOUD REPOSITORY\nStudents can access the official comprehensive collection of Previous Year Question Papers (PYQs) for all departments and academic semesters via the official Google Drive link:\nGoogle Drive PYQ Link: https://drive.google.com/drive/folders/10wqRkRbJs5Nt9yGuA4jvzp9Trfe8-746?usp=sharing\n\nIncluded Branches & Courses:\n1. Computer Science & Engineering (CSE) - Semesters 1 to 8\n2. Information Technology (IT) - Semesters 1 to 8\n3. Electronics & Communication Engineering (ECE) - Semesters 1 to 8\n4. Mechanical Engineering (ME) - Semesters 1 to 8\n\nExam Types Available:\n- Mid-Semester Tests (MST / Minor Examination papers)\n- End-Semester Final Examinations (Major University Question Papers)\n- Departmental Model Test Papers and Sample Solved Question Sets",
+        "createdAt": "2026-02-01T00:00:00.000Z"
+      },
+      {
+        "id": "chunk-pyq-2",
+        "documentId": "doc-pyq-archive-drive",
+        "documentName": "UIET_PYQ_Question_Papers_Archive.pdf",
+        "category": "Examination & PYQs",
+        "pageNumber": 2,
+        "chunkIndex": 1,
+        "text": "ACCESS INSTRUCTIONS FOR PREVIOUS YEAR QUESTION PAPERS (PYQ):\n1. Visit the Google Drive folder directly: https://drive.google.com/drive/folders/10wqRkRbJs5Nt9yGuA4jvzp9Trfe8-746?usp=sharing\n2. Navigate by Branch/Department folder (CSE, IT, ECE, ME, First Year Common Sciences).\n3. Open your specific semester folder (e.g., 1st Sem, 3rd Sem, 5th Sem, 7th Sem) to locate subject-wise question papers organized by academic year.\n4. Students can preview papers online or download entire folders as ZIP or individual PDF files for offline examination preparation.\n5. On the College AI Helpdesk home page, click 'Previous Year Papers (PYQ)' or the 'Open Google Drive PYQs' banner button to reach the repository in one click.",
+        "createdAt": "2026-02-01T00:00:00.000Z"
+      }
+    ]
   }
 ]

@@ -1,6 +1,6 @@
 {
   "name": "College AI Assistant",
-  "description": "Student Helpdesk for UIET Hoshiarpur",
+  "description": "Student Helpdesk & Academic Advisory for UIET Hoshiarpur with Gmail Authentication",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

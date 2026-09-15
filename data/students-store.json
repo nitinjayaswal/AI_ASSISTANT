@@ -1,0 +1,15 @@
+[
+  {
+    "id": "student-20tgqey5",
+    "email": "anubhav.student@gmail.com",
+    "displayName": "Anubhav Sharma",
+    "photoURL": "https://api.dicebear.com/7.x/initials/svg?seed=Anubhav%20Sharma&backgroundColor=023EBA&textColor=ffffff",
+    "role": "student",
+    "provider": "google.com",
+    "college": "UIET Hoshiarpur, Panjab University",
+    "department": "Engineering & Technology",
+    "semester": "Current",
+    "createdAt": "2026-09-14T20:31:19.420Z",
+    "lastLoginAt": "2026-09-14T20:31:19.420Z"
+  }
+]

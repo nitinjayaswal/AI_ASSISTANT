@@ -6,12 +6,15 @@ service cloud.firestore {
     function isAdmin() {
       return request.auth != null && (
         request.auth.token.admin == true ||
-        request.auth.token.email.matches('.*@college\\.edu$') ||
-        request.auth.token.role == 'admin'
+        request.auth.token.role == 'admin' ||
+        (request.auth.token.email != null && (
+          request.auth.token.email.matches('.*@college\\.edu$') ||
+          request.auth.token.email.matches('.*@uiet\\.ac\\.in$')
+        ))
       );
     }
 
-    // Public read-only access for students to search official college documents
+    // Public read-only access for students to access official college documents
     // Only verified college administrators can upload or delete documents
     match /documents/{docId} {
       allow read: if true;
@@ -24,13 +27,43 @@ service cloud.firestore {
       }
     }
 
-    // Global indexed chunks collection for fast retrieval
+    // Global indexed chunks collection for fast semantic retrieval
     match /chunks/{chunkId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // Student query telemetry & citation feedback (optional analytics)
+    // Previous year question papers (PYQs) archive
+    match /papers/{paperId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Official campus circulars and announcements (with image links support)
+    match /notices/{noticeId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Direct and hosted image link repository (including image collection shown in console)
+    match /image/{imageId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    match /images/{imageId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Student user profiles authenticated with Google / Gmail
+    match /students/{studentId} {
+      allow read: if request.auth != null && (request.auth.uid == studentId || isAdmin());
+      allow create, update: if request.auth != null && (request.auth.uid == studentId || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // Student query telemetry & citation feedback
     match /chatHistory/{sessionId} {
       allow read, write: if true;
     }
